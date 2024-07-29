@@ -33,6 +33,11 @@ mkdir -p "${OUTPUT_DIR}"
 
 #######################################################################################
 
+info "twitchrecorder by thirtysix (dev@36ip.de)"
+info "twitchrecorder process started for channelname: ${CHANNEL_NAME}"
+
+#######################################################################################
+
 if [ -n "${startupfix}" ] || [ -n "${2}" ] ; then
 
     info "${CHANNEL_NAME} fixing files started"
@@ -86,3 +91,7 @@ while true; do
     fi
 
 done
+
+#######################################################################################
+
+info "twitchrecorder process finished for channelname: ${CHANNEL_NAME}"

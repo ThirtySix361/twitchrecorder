@@ -3,7 +3,7 @@
 [![mail](https://img.shields.io/badge/Contact-dev%4036ip.de-blue?logo=maildotru)](mailto:dev@36ip.de)
 ![discord](https://img.shields.io/badge/Discord-.thirtysix-5865F2?style=flat&logo=discord)
 
-[![version](https://img.shields.io/badge/Version-1.0.0-deepgreen)](https://github.com/ThirtySix361/twitchrecorder?tab=readme-ov-file)
+[![version](https://img.shields.io/badge/Version-1.0.1-deepgreen)](https://github.com/ThirtySix361/twitchrecorder?tab=readme-ov-file)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder)](https://github.com/ThirtySix361/twitchrecorder?tab=readme-ov-file)
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?logo=github&style=flat)](https://github.com/ThirtySix361/twitchrecorder?tab=readme-ov-file)
 [![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)

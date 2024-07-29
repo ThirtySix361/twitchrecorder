@@ -11,6 +11,7 @@ if [ -z "$1" ]; then
 fi
 
 mkdir -p $basedir/mounts/archive
+chmod -R 777 $basedir/mounts/archive
 
 docker rm -f twitchrecorder_"$1"
 

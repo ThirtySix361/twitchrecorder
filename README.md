@@ -1,6 +1,6 @@
 # 🎥 twitchrecorder
 
-[![version](https://img.shields.io/badge/version-1.0.2-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
+[![version](https://img.shields.io/badge/version-1.1.0-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?logo=github&style=flat&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder)
 [![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
@@ -13,7 +13,14 @@
 
 this container lets you download any twitch stream by giving a simple twitch channel name as parameter.
 
-[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/preview.png)](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/preview.png)
+[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/preview.png)](https://36ip.de/twitchrecorder/)
+
+---
+
+## 🌐 links
+
+[source code](https://github.com/ThirtySix361/twitchrecorder) \
+[live demo](https://36ip.de/twitchrecorder/)
 
 ---
 
@@ -112,15 +119,20 @@ this will fix all files for a streamer on startup, which can take a while.
     - [x] fix header information of final .mp4 file on stream end
     - [x] optional re-fix files on container startup
         - [ ] fix only files which are not already fine
-    - [ ] capture chat into textfile
+    - [x] capture chat into textfile
+        - [ ] capture twitch emotes
     - [ ] improve live playback
-- [ ] webpage
+- [x] webpage
     - [x] list every video file from archive (order by filename)
+        - [x] filter videos by streamer
     - [x] display filename and filesize
     - [x] delete video button
+        - [x] remove empty directorys
+        - [x] remove last time position
     - [x] video navigation buttons
     - [x] save last time position to localstorage
     - [x] load last time position on open
-    - [x] remove last time position on delete
-    - [ ] display chat next to the video
-        - [ ] sync chat with video
+    - [x] display chat next to the video
+        - [x] sync chat with video
+    - [x] release a demo version
+    - [x] improve responsive design especially for mobile

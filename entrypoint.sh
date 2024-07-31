@@ -29,7 +29,6 @@ fi
 #######################################################################################
 
 OUTPUT_DIR="/home/twitchrecorder/archive/${CHANNEL_NAME}"
-mkdir -p "${OUTPUT_DIR}"
 
 #######################################################################################
 
@@ -69,10 +68,19 @@ while true; do
 
         info "${CHANNEL_NAME} recording started"
 
+        mkdir -p "${OUTPUT_DIR}"
+
         TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
         OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.mp4"
+        CHAT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.log"
 
-        streamlink -o - twitch.tv/"${CHANNEL_NAME}" 720p,720p60,best 2>> "${basedir}"/streamlink.log | ffmpeg -fflags +genpts -i pipe:0 -c:v copy -c:a aac -b:a 128k -f mp4 -movflags +frag_keyframe+empty_moov+faststart "${OUTPUT_FILE}" >> "${basedir}"/ffmpeg.log 2>&1
+        node "${basedir}"/chatlog.js "${CHANNEL_NAME}" "${CHAT_FILE}" &
+        NODE_PID=$!
+
+        streamlink -o - twitch.tv/"${CHANNEL_NAME}" 720p,720p60,best 2>> "${basedir}"/streamlink.log | \
+            ffmpeg -fflags +genpts -i pipe:0 -c:v copy -c:a aac -b:a 128k -f mp4 -movflags +frag_keyframe+empty_moov+faststart "${OUTPUT_FILE}" >> "${basedir}"/ffmpeg.log 2>&1
+
+        kill $NODE_PID
 
         info "${CHANNEL_NAME} recording finished"
 

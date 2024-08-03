@@ -14,5 +14,6 @@ RUN npx puppeteer browsers install chrome
 
 COPY entrypoint.sh /home/twitchrecorder/
 COPY chatlog.js /home/twitchrecorder/
+COPY raw36.png /home/twitchrecorder/
 
 ENTRYPOINT ["bash", "/home/twitchrecorder/entrypoint.sh"]

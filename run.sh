@@ -20,4 +20,4 @@ docker run -d --restart unless-stopped --name twitchrecorder_"$1" \
   -v /etc/timezone:/etc/timezone:ro \
   -v /etc/localtime:/etc/localtime:ro \
   -v $basedir/mounts/archive/:/home/twitchrecorder/archive/ \
-  twitchrecorder $1 $2
+  twitchrecorder $1

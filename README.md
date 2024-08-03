@@ -1,6 +1,6 @@
 # 🎥 twitchrecorder
 
-[![version](https://img.shields.io/badge/version-1.1.0-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
+[![version](https://img.shields.io/badge/version-1.2.0-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?logo=github&style=flat&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder)
 [![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
@@ -68,12 +68,9 @@ bash run.sh montanablack88
 
 ## 🧠 general informations
 
-this container will scan every 5 minutes if the given streamer has started streaming. \
-if so, it will start recording the stream.
+this container will scan every minute if the given streamer has started streaming. if so, it will start recording the stream.
 
-if the streamer stopped streaming, the container will perform another check after 60 seconds, in case the streamer just had a disconnect and restarts the stream, you will not miss full 5 minutes of the stream.
-
-if container breaks, shutdown, is killed or has no more internet connection, the captured file will not be corrupted. you will still be able to play it!
+if container breaks, shuts down, is killed or has no more internet connection, the captured file will not be corrupted. you will still be able to play it!
 
 on common stream ending, the container will perform a fix on the final `.mp4` file, which will move the header information (which includes also the final length of file) to the begin. this has to do with the way the `.mp4` is written while the stream is running.
 
@@ -85,24 +82,54 @@ all header information are stored at the begin of the file which is uncommon. bu
 
 ## 🧐 troubleshooting
 
-in case a container was forcefully killed and you want to fix the files, use `fix` as second parameter:
+in case a container was forcefully killed, just re-deploy the container for the given streamer.
+it will autofix the files which did not graceful finished.
 
-for example:
+this can take a while on huge files.
 
-```bash
-bash run.sh shroud fix
-bash run.sh ninja fix
-bash run.sh pewdiepie fix
-bash run.sh montanablack88 fix
+---
+
+## flowchart
+
+```mermaid
+graph TD
+
+    start[start]
+    checkraw[check for .raw files]
+    islive{is streamer live?}
+    finalthumb[create final thumbnail]
+    deleteraw[delete .raw indicaton file]
+    sleep[sleep for 60 seconds]
+    defaultthumbnail[create default .raw thumbnail]
+    createraw[create .raw indication file]
+    startrecording[start recording task]
+    chattask[start chat scraping task]
+    streamend{stream end?}
+    fixrecording[fix recording]
+
+    start --> islive
+    start --> checkraw
+
+    islive -->|no| sleep
+    islive -->|yes| createraw
+
+    createraw --> defaultthumbnail
+    defaultthumbnail --> chattask
+    chattask --> startrecording
+    startrecording --> streamend
+
+    streamend -->|no| streamend
+    streamend -->|yes| fixrecording
+
+    checkraw --> fixrecording
+
+    fixrecording --> finalthumb
+    finalthumb --> deleteraw
+    deleteraw --> sleep
+
+    sleep --> islive
+
 ```
-
-or set this environment variable in the container:
-
-```bash
-startupfix="fix"
-```
-
-this will fix all files for a streamer on startup, which can take a while.
 
 ---
 
@@ -116,9 +143,9 @@ this will fix all files for a streamer on startup, which can take a while.
     - [x] autodetect if streamer started streaming and start recording
     - [x] make file playable even if the streamer is still streaming and file is still being written
     - [x] prevent file from beeing corrupted after container shutdown while file is still being written
-    - [x] fix header information of final .mp4 file on stream end
-    - [x] optional re-fix files on container startup
-        - [ ] fix only files which are not already fine
+    - [x] autofix final .mp4 file on stream end
+        - [x] autofix unfinished files on container startup
+    - [x] take thumbnail from final .mp4 on stream end
     - [x] capture chat into textfile
         - [ ] capture twitch emotes
     - [ ] improve live playback
@@ -136,3 +163,4 @@ this will fix all files for a streamer on startup, which can take a while.
         - [x] sync chat with video
     - [x] release a demo version
     - [x] improve responsive design especially for mobile
+    - [x] redesign webpage

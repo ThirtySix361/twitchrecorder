@@ -37,26 +37,66 @@ info "twitchrecorder process started for channelname: ${CHANNEL_NAME}"
 
 #######################################################################################
 
-if [ -n "${startupfix}" ] || [ -n "${2}" ] ; then
+halving() {
+    local input="$1"
+    echo "$input" | awk -F: '
+    {
+        split($3, arr, ".");
+        hours = $1;
+        minutes = $2;
+        seconds = arr[1];
+        milliseconds = arr[2];
 
-    info "${CHANNEL_NAME} fixing files started"
+        total_seconds = hours * 3600 + minutes * 60 + seconds + milliseconds / 100;
+        half_seconds = total_seconds / 2;
 
-    for file in "${basedir}"/archive/"${CHANNEL_NAME}"/*.mp4; do
+        h = int(half_seconds / 3600);
+        m = int((half_seconds % 3600) / 60);
+        s = int(half_seconds % 60);
+        ms = int((half_seconds - int(half_seconds)) * 100);
 
-        if [ -f "${file}" ]; then
+        printf "%02d:%02d:%02d.%02d\n", h, m, s, ms;
+    }'
+}
 
-            ffmpeg -i "${file}" -c copy -movflags +faststart "${file}_fixed.mp4" >> "${basedir}"/ffmpeg.log 2>&1
-            rm -rf "${file}"
-            mv "${file}_fixed.mp4" "${file}"
-            info "${file} recording fixed"
+thumbnail() {
+    local input="$1"
+    local basename="${input%.*}"
+    local OUTPUT_FILE="${basename}.mp4"
+    local PREVIEW_IMAGE="${basename}.png"
 
-        fi
+    duration=$(ffmpeg -i "${OUTPUT_FILE}" 2>&1 | grep "Duration" | cut -d ' ' -f 4 | sed s/,//)
+    halfduration=$(halving "${duration}")
+    ffmpeg -y -ss $halfduration -i "${OUTPUT_FILE}" -vframes 1 -q:v 2 "${PREVIEW_IMAGE}" >> "${basedir}"/thumbnail.log 2>&1
 
-    done
+    info "${PREVIEW_IMAGE} thumbnail created"
+}
 
-    info "${CHANNEL_NAME} fixing files finished"
+fix() {
+    local input="$1"
+    local basename="${input%.*}"
+    local OUTPUT_FILE="${basename}.mp4"
+    local TEMP_FILE="${basename}.processing"
+    local RAW="${basename}.raw"
 
-fi
+    ffmpeg -i "${OUTPUT_FILE}" -c copy -movflags +faststart -f mp4 "${TEMP_FILE}" >> "${basedir}"/fix.log 2>&1
+    rm -rf "${OUTPUT_FILE}"
+    mv "${TEMP_FILE}" "${OUTPUT_FILE}"
+
+    info "${OUTPUT_FILE} recording fixed"
+
+    thumbnail "${OUTPUT_FILE}"
+
+    rm "${RAW}"
+}
+
+#######################################################################################
+
+for file in "${basedir}"/archive/"${CHANNEL_NAME}"/*.raw; do
+    if [ -f "$file" ]; then
+        fix $file &
+    fi
+done
 
 #######################################################################################
 
@@ -66,13 +106,18 @@ while true; do
 
     if [ "${islive}" == "1" ]; then
 
-        info "${CHANNEL_NAME} recording started"
-
         mkdir -p "${OUTPUT_DIR}"
 
         TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
         OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.mp4"
         CHAT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.log"
+        PREVIEW_IMAGE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.png"
+        RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
+
+        info "${OUTPUT_FILE} recording started"
+
+        touch "${RAW}"
+        cp "${basedir}"/raw36.png "${PREVIEW_IMAGE}"
 
         node "${basedir}"/chatlog.js "${CHANNEL_NAME}" "${CHAT_FILE}" &
         NODE_PID=$!
@@ -82,21 +127,13 @@ while true; do
 
         kill $NODE_PID
 
-        info "${CHANNEL_NAME} recording finished"
+        info "${OUTPUT_FILE} recording finished"
 
-        ffmpeg -i "${OUTPUT_FILE}" -c copy -movflags +faststart "${OUTPUT_FILE}_fixed.mp4" >> "${basedir}"/fix.log 2>&1
-        rm -rf "${OUTPUT_FILE}"
-        mv "${OUTPUT_FILE}_fixed.mp4" "${OUTPUT_FILE}"
-
-        info "${OUTPUT_FILE} recording fixed"
-
-        sleep 60
-
-    else
-
-        sleep 300
+        fix "${RAW}"
 
     fi
+
+    sleep 60
 
 done
 

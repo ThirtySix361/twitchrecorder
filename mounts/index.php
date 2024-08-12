@@ -179,15 +179,19 @@
                 font-size: 0.6em;
                 margin-right: 5px;
             }
-            .chat .chatmessage .name {
-                font-size: 1.0em;
-                margin-right: 5px;
-                color: #333;
-                font-weight: bold;
-            }
             .chat .chatmessage .msg {
                 font-size: 1.0em;
                 margin-right: 5px;
+            }
+            .chat .chatmessage:nth-child(odd) {
+                //background-color: #444;
+            }
+            .chat .chatmessage .chat-author__display-name {
+                font-weight: bold;
+                margin-left: 5px;
+            }
+            .chat .chatmessage img {
+                margin-left: 3px;
             }
             .options {
                 display: flex;
@@ -358,56 +362,14 @@
                     });
             }
 
-            function formatReply(chatMessage) {
-                const regex = /^([^:]+):\s*(.*)$/;
-                const match = chatMessage.match(regex);
-
-                if (match) {
-                    return `<span class="name">${match[1]}</span>${match[2]}`;
-                }
-            }
-
             function formatChatMessage(chatMessage) {
-                const normalMessageRegex = /^(\d{2}:\d{2}:\d{2})\s+(.*?):\s*(.*)$/;
-                const replyingToMessageRegex = /^(\d{2}:\d{2}:\d{2})\s+Replying to\s+(@[\w]+):\s*(.*)/s;
-
+                const normalMessageRegex = /^(\d{2}:\d{2}:\d{2})\s*(.*)$/;
                 let match = chatMessage.match(normalMessageRegex);
                 if (match) {
-                    const [_, time, name, msg] = match;
-                    return `<div class="chatmessage"><span class="time">${time}</span><span class="name">${name}</span><span class="msg">${msg}</span></div>`;
+                    const [, time, msg] = match;
+                    return `<div class="chatmessage"><span class="time">${time}</span><span class="msg">${msg}</span></div>`;
                 }
-
-                match = chatMessage.match(replyingToMessageRegex);
-                if (match) {
-                    const [_, time, repliedTo, msg] = match;
-                    return `<div class="chatmessage"><span class="time">${time}</span><span class="name">Replying to ${repliedTo}</span><span class="msg">${msg}</span></div>`;
-                }
-
                 return `<div class="chatmessage"><span class="msg">${chatMessage}</span></div>`;
-            }
-
-            function processReplies(lines) {
-                let processedLines = [];
-                let tempLine = '';
-                let isReplyingTo = false;
-
-                for (const line of lines) {
-                    if (line.includes('Replying to')) {
-                        tempLine = line;
-                        isReplyingTo = true;
-                    } else if (isReplyingTo && line.trim() === '') {
-                        continue;
-                    } else if (isReplyingTo) {
-                        formattedline = formatReply(line);
-                        processedLines.push(`${tempLine}\n${formattedline}`);
-                        tempLine = '';
-                        isReplyingTo = false;
-                    } else {
-                        processedLines.push(line);
-                    }
-                }
-
-                return processedLines;
             }
 
             function updateChatWindow(video) {
@@ -416,9 +378,7 @@
 
                 const lines = chatMessages.split('\n');
 
-                const processedLines = processReplies(lines);
-
-                const filteredLines = processedLines.filter(line => {
+                const filteredLines = lines.filter(line => {
                     const timeMatch = line.match(/^(\d{2}):(\d{2}):(\d{2})/);
                     if (timeMatch) {
                         const [, hours, minutes, seconds] = timeMatch;
@@ -480,11 +440,10 @@
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    height: 100vh;
                 }
             </style>
 
-            <div id="header" style="z-index: 9999; position: fixed; top: 0; left:0; right: 0; text-align: center; background-color: #444; text-align: center; padding: 10px;">
+            <div id="header" style="z-index: 9999; position: sticky; top: 0; left:0; right: 0; text-align: center; background-color: #444; text-align: center; padding: 10px;">
                 <div class="options">
                     <button onclick="location.href='<?=$baseurl?>'">Back</button>
                     <?=$videoprettyname?> (<?= $videosize ?> GB)
@@ -504,10 +463,11 @@
                 </div>
             </div>
 
-            <div id="footer" style="z-index: 9999; padding: 10px; position: fixed; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
-                twitchrecorder
+            <div id="footer" style="z-index: 9999; padding: 10px; position: sticky; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
+                <a href="<?=$baseurl?>" style="text-decoration: underline; color: #aaa;">twitchrecorder</a>
+                -
                 <a href="<?=$baseurl?>/archive" style="text-decoration: underline; color: #aaa;">archive</a>
-                by
+                - by
                 <a href="https://github.com/ThirtySix361/twitchrecorder" style="text-decoration: underline; color: #aaa;">thirtysix</a>
             </div>
 
@@ -569,9 +529,10 @@
             </div>
 
             <div id="footer" style="z-index: 9999; padding: 10px; position: sticky; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
-                twitchrecorder
+                <a href="<?=$baseurl?>" style="text-decoration: underline; color: #aaa;">twitchrecorder</a>
+                -
                 <a href="<?=$baseurl?>/archive" style="text-decoration: underline; color: #aaa;">archive</a>
-                by
+                - by
                 <a href="https://github.com/ThirtySix361/twitchrecorder" style="text-decoration: underline; color: #aaa;">thirtysix</a>
             </div>
 

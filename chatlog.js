@@ -27,39 +27,67 @@ const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
     await page.waitForSelector('.chat-scrollable-area__message-container');
 
     await page.evaluate(() => {
-        const startTime = new Date();
-        const targetNode = document.querySelector('.chat-scrollable-area__message-container');
-        const config = { childList: true };
+        var startTime = new Date();
+        var targetNode = document.querySelector('.chat-scrollable-area__message-container');
+        var config = { childList: true };
 
-        const callback = (mutationsList) => {
+        function replaceMultipleSpaces(str) {
+            return str.replace(/\s+/g, ' ');
+        }
+
+        function extractText(node) {
+            let stack = [node];
+            let messageText = '';
+
+            while (stack.length) {
+                let currentNode = stack.pop();
+
+                if (currentNode.nodeType === Node.ELEMENT_NODE) {
+                    if (currentNode.tagName === 'IMG') {
+                        messageText += `<img src="${currentNode.src}" alt="${currentNode.alt || ''}">`;
+                    } else if (currentNode.tagName === 'SPAN' && currentNode.classList.contains('chat-author__display-name')) {
+                        messageText += `<span class="chat-author__display-name" style="${currentNode.getAttribute('style')}">${currentNode.innerHTML}</span>`;
+                    } else {
+                        for (let i = currentNode.childNodes.length - 1; i >= 0; i--) {
+                            stack.push(currentNode.childNodes[i]);
+                        }
+                    }
+                } else if (currentNode.nodeType === Node.TEXT_NODE) {
+                    messageText += currentNode.nodeValue + " ";
+                }
+            }
+
+            return replaceMultipleSpaces(messageText);
+        }
+
+        var callback = (mutationsList) => {
             for (let mutation of mutationsList) {
                 if (mutation.addedNodes.length) {
                     mutation.addedNodes.forEach(node => {
-                        if (node.classList && node.classList.contains('chat-line__message')) {
+                        if (node.classList && node.classList.contains('chat-line__message') || node.classList && node.classList.contains('user-notice-line')) {
 
-                            const messageText = node.innerText.trim();
-                            const currentTime = new Date();
-                            const elapsedMilliseconds = currentTime - startTime;
-                            const elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
-                            const elapsedMinutes = Math.floor(elapsedSeconds / 60);
-                            const elapsedHours = Math.floor(elapsedMinutes / 60);
+                            messageText = extractText(node).trim();
+                            var currentTime = new Date();
+                            var elapsedMilliseconds = currentTime - startTime;
+                            var elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
+                            var elapsedMinutes = Math.floor(elapsedSeconds / 60);
+                            var elapsedHours = Math.floor(elapsedMinutes / 60);
 
-                            const formattedTime = [
+                            var formattedTime = [
                                 String(elapsedHours).padStart(2, '0'),
                                 String(elapsedMinutes % 60).padStart(2, '0'),
                                 String(elapsedSeconds % 60).padStart(2, '0')
                             ].join(':');
 
-                            const message = `${formattedTime} ${messageText}`;
+                            var message = `${formattedTime} ${messageText}`;
                             window.logChatMessage(message);
-
                         }
                     });
                 }
             }
         };
 
-        const observer = new MutationObserver(callback);
+        var observer = new MutationObserver(callback);
         observer.observe(targetNode, config);
     });
 

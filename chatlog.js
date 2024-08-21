@@ -20,7 +20,6 @@ const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
 
     await page.exposeFunction('logChatMessage', (message) => {
         logStream.write(`${message}\n`);
-        //console.log(`${message}\n`);
     });
 
     await page.goto(url);
@@ -65,20 +64,10 @@ const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
                 if (mutation.addedNodes.length) {
                     mutation.addedNodes.forEach(node => {
                         if (node.classList && node.classList.contains('chat-line__message') || node.classList && node.classList.contains('user-notice-line')) {
-
                             messageText = extractText(node).trim();
-                            var currentTime = new Date();
-                            var elapsedMilliseconds = currentTime - startTime;
-                            var elapsedSeconds = Math.floor(elapsedMilliseconds / 1000);
-                            var elapsedMinutes = Math.floor(elapsedSeconds / 60);
-                            var elapsedHours = Math.floor(elapsedMinutes / 60);
-
-                            var formattedTime = [
-                                String(elapsedHours).padStart(2, '0'),
-                                String(elapsedMinutes % 60).padStart(2, '0'),
-                                String(elapsedSeconds % 60).padStart(2, '0')
-                            ].join(':');
-
+                            var elapsedMilliseconds = Date.now() - startTime;
+                            var elapsedDate = new Date(elapsedMilliseconds);
+                            var formattedTime = elapsedDate.toISOString().substr(11, 8);
                             var message = `${formattedTime} ${messageText}`;
                             window.logChatMessage(message);
                         }

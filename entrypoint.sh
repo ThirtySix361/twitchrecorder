@@ -79,6 +79,7 @@ fix() {
     local TEMP_FILE="${basename}.processing"
     local RAW="${basename}.raw"
 
+    rm -rf "${TEMP_FILE}"
     ffmpeg -i "${OUTPUT_FILE}" -c copy -movflags +faststart -f mp4 "${TEMP_FILE}" >> "${basedir}"/fix.log 2>&1
     rm -rf "${OUTPUT_FILE}"
     mv "${TEMP_FILE}" "${OUTPUT_FILE}"

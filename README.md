@@ -1,6 +1,6 @@
 # 🎥 twitchrecorder
 
-[![version](https://img.shields.io/badge/version-1.3.1-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
+[![version](https://img.shields.io/badge/version-1.3.2-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?logo=github&style=flat&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder)
 [![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)

@@ -95,7 +95,7 @@ fix() {
 
 for file in "${basedir}"/archive/"${CHANNEL_NAME}"/*.raw; do
     if [ -f "$file" ]; then
-        fix $file &
+        fix "$file" &
     fi
 done
 
@@ -130,7 +130,7 @@ while true; do
 
         info "${OUTPUT_FILE} recording finished"
 
-        fix "${RAW}"
+        fix "${RAW}" &
 
     fi
 

@@ -63,14 +63,12 @@ const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
             for (let mutation of mutationsList) {
                 if (mutation.addedNodes.length) {
                     mutation.addedNodes.forEach(node => {
-                        if (node.classList && node.classList.contains('chat-line__message') || node.classList && node.classList.contains('user-notice-line')) {
-                            messageText = extractText(node).trim();
-                            var elapsedMilliseconds = Date.now() - startTime;
-                            var elapsedDate = new Date(elapsedMilliseconds);
-                            var formattedTime = elapsedDate.toISOString().substr(11, 8);
-                            var message = `${formattedTime} ${messageText}`;
-                            window.logChatMessage(message);
-                        }
+                        messageText = extractText(node).trim();
+                        var elapsedMilliseconds = Date.now() - startTime;
+                        var elapsedDate = new Date(elapsedMilliseconds);
+                        var formattedTime = elapsedDate.toISOString().substr(11, 8);
+                        var message = `${formattedTime} ${messageText}`;
+                        window.logChatMessage(message);
                     });
                 }
             }

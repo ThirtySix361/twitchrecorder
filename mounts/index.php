@@ -124,11 +124,16 @@
             * {
                 box-sizing: border-box;
             }
+            svg {
+                filter: invert(70%) sepia(0%) saturate(11%) hue-rotate(82deg) brightness(89%) contrast(85%);
+                width: auto;
+                height: 16px;
+            }
             body {
                 display: flex;
                 flex-direction: column;
                 margin: 0 auto;
-                font-family: Arial, sans-serif;
+                font-family: Verdana, sans-serif;
                 color: #999;
                 background-color: #333;
                 min-height: 100vh;
@@ -193,13 +198,16 @@
             .chat .chatmessage img {
                 margin-left: 3px;
             }
-            .options {
+            .video-options {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 gap: 10px;
             }
-            .options button {
+            .video-options button {
+                display: flex;
+                justify-content: center;
+                min-width: 75px;
                 padding: 5px 10px;
                 cursor: pointer;
                 background-color: #555;
@@ -226,7 +234,7 @@
                 border: 0;
                 border-radius: 3px;
             }
-            .navigation button:hover, .options button:hover {
+            .navigation button:hover, .video-options button:hover {
                 background-color: #666;
             }
             .counter {
@@ -258,7 +266,7 @@
                 }
                 .videowrapper {
                     width: 90vw;
-                    height: 37.5vh;
+                    height: 100%;
                 }
                 .chatwrapper {
                     width: 90vw;
@@ -310,7 +318,9 @@
                     images.forEach(function(image) {
                         let videosrc = image.src.replace(".png", ".mp4")
                         if (localStorage.getItem(videosrc)) {
-                            image.parentNode.parentNode.parentNode.style.border = "5px solid #999"
+                            target = image.parentNode.parentNode.parentNode;
+                            target.style.filter = "brightness(0.5)";
+                            target.style.transform = "scale(0.975)";
                         }
                     })
                 }
@@ -425,6 +435,7 @@
         </script>
     </head>
     <body>
+
         <?php if (isset($_GET['video']) && is_file(__DIR__.$_GET['video'])) { ?>
 
             <?php
@@ -444,10 +455,10 @@
             </style>
 
             <div id="header" style="z-index: 9999; position: sticky; top: 0; left:0; right: 0; text-align: center; background-color: #444; text-align: center; padding: 10px;">
-                <div class="options">
-                    <button onclick="location.href='<?=$baseurl?>'">Back</button>
+                <div class="video-options">
+                    <button onclick="location.href='<?=$baseurl?>'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="#000000" d="M177.5 414c-8.8 3.8-19 2-26-4.6l-144-136C2.7 268.9 0 262.6 0 256s2.7-12.9 7.5-17.4l144-136c7-6.6 17.2-8.4 26-4.6s14.5 12.5 14.5 22l0 72 288 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l-288 0 0 72c0 9.6-5.7 18.2-14.5 22z"/></svg></button>
                     <?=$videoprettyname?> (<?= $videosize ?> GB)
-                    <button onclick="deleteFile('<?=$videopath?>')">Delete</button>
+                    <button onclick="deleteFile('<?=$videopath?>')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
                 </div>
             </div>
 
@@ -461,14 +472,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div id="footer" style="z-index: 9999; padding: 10px; position: sticky; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
-                <a href="<?=$baseurl?>" style="text-decoration: underline; color: #aaa;">twitchrecorder</a>
-                -
-                <a href="<?=$baseurl?>/archive" style="text-decoration: underline; color: #aaa;">archive</a>
-                - by
-                <a href="https://github.com/ThirtySix361/twitchrecorder" style="text-decoration: underline; color: #aaa;">thirtysix</a>
             </div>
 
         <?php } else { ?>
@@ -485,21 +488,32 @@
                     gap: 15px;
                 }
                 .preview-wrapper {
-                    width: 300px;
-                    padding: 15px;
+                    width: auto;
                     text-align: center;
                     background-color: #444;
-                    border: 5px solid #444;
+                    border-radius: 5px;
                 }
-                .video-name{
+                .video-name {
+                    margin: 10px;
                     word-break: break-word;
                 }
-                .video-preview{
-                    margin: 10px 0;
+                .video-preview {
+                    margin: 10px;
+                }
+                .video-preview a {
+                    display: block;
+                }
+                .video-options {
+                    margin: 10px;
+                }
+                .video-options button {
+                    width: 100%;
                 }
                 img {
+                    display: block;
                     width: 192px;
                     height: 108px;
+                    border-radius: 5px;
                 }
 
             </style>
@@ -516,26 +530,39 @@
                 <div class="content">
                     <?php foreach ($videoFiles as $video): ?>
                     <div class="preview-wrapper">
-                        <div class="video-name"><?= $video['prettyName'] ?> (<?= $video['size'] ?> GB)</div>
                         <div class="video-preview">
                             <a href="?video=<?=$video['path']?>"><img class="preview-img" src="<?=$video['png']?>"></img></a>
                         </div>
-                        <div class="options">
-                            <button onclick="deleteFile('<?=$video['path']?>')">Delete</button>
+                        <div class="video-name"><?= str_replace(' ', '<br>', $video['prettyName']) ?><br>(<?= $video['size'] ?> GB)</div>
+                        <div class="video-options">
+                            <button onclick="deleteFile('<?=$video['path']?>')"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg></button>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
             </div>
 
-            <div id="footer" style="z-index: 9999; padding: 10px; position: sticky; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
-                <a href="<?=$baseurl?>" style="text-decoration: underline; color: #aaa;">twitchrecorder</a>
-                -
-                <a href="<?=$baseurl?>/archive" style="text-decoration: underline; color: #aaa;">archive</a>
-                - by
-                <a href="https://github.com/ThirtySix361/twitchrecorder" style="text-decoration: underline; color: #aaa;">thirtysix</a>
-            </div>
+            <?php
+                $path_to_archive = "archive";
+                if (is_dir($path_to_archive)) {
+                    $totalSpace = disk_total_space($path_to_archive);
+                    $freeSpace = disk_free_space($path_to_archive);
+                    $usedSpace = $totalSpace - $freeSpace;
+                    echo "<div style='text-align: center; padding: 10px;'> " . round($usedSpace / 1073741824, 0) . " of " . round($totalSpace / 1073741824, 0) . " GB used</div>";
+                } else {
+                    echo "<div style='text-align: center; padding: 10px;'> archive path not found </div>";
+                }
+            ?>
 
         <?php } ?>
+
+        <div id="footer" style="z-index: 9999; padding: 10px; position: sticky; bottom: 0; left:0; right: 0; text-align: center; background-color: #444">
+            <a href="<?=$baseurl?>" style="text-decoration: underline; color: #aaa;">twitchrecorder</a>
+            -
+            <a href="<?=$baseurl?>/archive" style="text-decoration: underline; color: #aaa;">archive</a>
+            - by
+            <a href="https://github.com/ThirtySix361/twitchrecorder" style="text-decoration: underline; color: #aaa;">thirtysix</a>
+        </div>
+
     </body>
 </html>

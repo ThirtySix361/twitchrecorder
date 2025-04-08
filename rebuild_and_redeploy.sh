@@ -12,6 +12,7 @@ basepath="${basedir}/${basefile}"
 #######################################################################################
 
 running=$(docker ps --format "{{.Names}}" | grep "twitchrecorder" | sed 's/^twitchrecorder_//' )
+running=$(echo "$running" | grep -v "_webserver")
 
 echo "$running" | xargs -I {} docker rm -f twitchrecorder_{}
 

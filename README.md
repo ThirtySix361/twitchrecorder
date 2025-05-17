@@ -1,34 +1,38 @@
+<div align="center">
+
+[![version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/build/version.json?&style=for-the-badge&logo=wikidata)](https://github.com/ThirtySix361/twitchrecorder)
+[![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?&style=for-the-badge&logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
+[![Docker Image CI/CD](https://img.shields.io/github/actions/workflow/status/ThirtySix361/twitchrecorder/docker.yml?style=for-the-badge&logo=github&label=Docker%20Pipeline)](https://github.com/ThirtySix361/twitchrecorder/actions/workflows/docker.yml) <br>
+[![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=github&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder/stargazers)
+[![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
+[![stars](https://img.shields.io/docker/stars/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder) <br>
+[![mail](https://img.shields.io/badge/contact-dev%4036ip.de-blue?style=for-the-badge&&logo=maildotru)](mailto:dev@36ip.de)
+[![discord](https://img.shields.io/badge/discord-.thirtysix-5865F2?style=for-the-badge&logo=discord)](https://discord.com/users/323043165021929482)
+
+</div>
+
 # 🎥 twitchrecorder
 
-[![version](https://img.shields.io/badge/version-1.3.4-deepgreen)](https://github.com/ThirtySix361/twitchrecorder)
-[![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
-[![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?logo=github&style=flat&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder)
-[![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
-[![stars](https://img.shields.io/docker/stars/thirtysix361/twitchrecorder.svg?logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
-
-[![mail](https://img.shields.io/badge/contact-dev%4036ip.de-blue?logo=maildotru)](mailto:dev@36ip.de)
-![discord](https://img.shields.io/badge/discord-.thirtysix-5865F2?style=flat&logo=discord)
-
----
+<div align="center">
 
 this container lets you download any twitch stream by giving a simple twitch channel name as parameter.
 
-[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/preview.png)](https://36ip.de/twitchrecorder/)
+[![features](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/features.png)](https://github.com/ThirtySix361/twitchrecorder/)
 
----
+<!--
+[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/preview.png)](https://36ip.de/twitchrecorder/)
+-->
+
+</div>
 
 ## 🌐 links
 
 [source code](https://github.com/ThirtySix361/twitchrecorder) \
 [live demo](https://36ip.de/twitchrecorder/)
 
----
-
 ## 🔗 dependencies
 
-+ docker
-
----
+docker
 
 ## 🚀 quick start
 
@@ -42,7 +46,7 @@ cd twitchrecorder
 step 2.
 
 ```bash
-bash build.sh
+docker pull thirtysix361/twitchrecorder
 ```
 
 step 3.
@@ -53,7 +57,7 @@ bash run.sh <twitchchannelname>
 
 perform `step 3` for each streamer you want to record.
 
-for example:
+for example
 
 ```bash
 bash run.sh shroud
@@ -62,34 +66,52 @@ bash run.sh pewdiepie
 bash run.sh montanablack88
 ```
 
->//<br>//<samp> 💡 optionally point your webserver with php interpreter to the `mounts/` directory </samp><br>//
+## 🖥️ webserver
 
----
+>//<br>//<samp> 💡 optionally start a webserver to playback your archive like netflix 😎</samp><br>//
+
+pull the image
+
+```bash
+docker pull thirtysix361/twitchrecorder_webserver
+```
+
+start the webserver on default port `8081`
+
+```bash
+bash webserver_run.sh
+```
+
+or on custom port with
+```bash
+bash webserver_run.sh <port>
+```
+
+for example
+```bash
+bash webserver_run.sh 8080
+```
+
+then acceess the webpage through your browser on `http://localhost:<port>`
 
 ## 🧠 general informations
 
-this container will scan every minute if the given streamer has started streaming. if so, it will start recording the stream.
+<div align="center">
 
-if container breaks, shuts down, is killed or has no more internet connection, the captured file will not be corrupted. you will still be able to play it!
+[![flow](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/flow.png)](https://github.com/ThirtySix361/twitchrecorder/)
 
-on common stream ending, the container will perform a fix on the final `.mp4` file, which will move the header information (which includes also the final length of file) to the begin. this has to do with the way the `.mp4` is written while the stream is running.
-
-all header information are stored at the begin of the file which is uncommon. but only by this way it is possible to have a working file after crash or forceful shutdown of the container and its inner capturing software.
+</div>
 
 >//<br>//<samp> 💡 the `.mp4` files are stored in the `mounts/archive/<channelname>/` directory </samp><br>//
-
----
 
 ## 🧐 troubleshooting
 
 in case a container was forcefully killed, just re-deploy the container for the given streamer.
 it will autofix the files which did not graceful finished.
 
-this can take a while on huge files.
+this can take a while on huge files, depending on your used hardware.
 
----
-
-## flowchart
+## 🌊 flowchart
 
 ```mermaid
 graph TD
@@ -118,8 +140,8 @@ graph TD
     chattask --> startrecording
     startrecording --> streamend
 
-    streamend -->|no| streamend
     streamend -->|yes| fixrecording
+    streamend -->|no| streamend
 
     checkraw --> fixrecording
 
@@ -131,15 +153,12 @@ graph TD
 
 ```
 
----
-
 ## 📝 todo list
-
 - [x] container
     - [x] runs as user instead of root
     - [x] allowing multiple instances at same time for unlimited parallel recordings
     - [x] proper logging
-- [ ] recordings
+- [x] recordings
     - [x] autodetect if streamer started streaming and start recording
     - [x] make file playable even if the streamer is still streaming and file is still being written
     - [x] prevent file from beeing corrupted after container shutdown while file is still being written
@@ -148,7 +167,11 @@ graph TD
     - [x] take thumbnail from final .mp4 on stream end
     - [x] capture chat into textfile
         - [x] capture twitch emotes
-    - [ ] improve live playback
+    - [x] improve live playback
+        - [x] capture stream with hls and .m3u8
+    - [x] remove all advertisements by twitch from the stream
+- [x] webserver
+    - [x] add an optional webserver-container for the webpage
 - [x] webpage
     - [x] list every video file from archive (order by filename)
         - [x] filter videos by streamer
@@ -164,3 +187,4 @@ graph TD
     - [x] release a demo version
     - [x] improve responsive design especially for mobile
     - [x] redesign webpage
+    - [x] implement hls for live-playback

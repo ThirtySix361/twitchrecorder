@@ -12,31 +12,31 @@ basepath=$basedir/$basefile
 #######################################################################################
 
 if [ -z "$1" ]; then
-    error "no channel set"
-    info "try: bash $basepath <channelname>"
-    exit 1
+    port=8081
+else
+    port="$1"
 fi
 
-mkdir -p $basedir/mounts/archive
-chmod -R 777 $basedir/mounts/archive
+mkdir -p $basedir/mounts/archive/
+chmod -R 777 $basedir/mounts/archive/
 
 #######################################################################################
 
-docker rm -f twitchrecorder_"$1" > /dev/null 2>&1
+docker rm -f twitchrecorder_webserver > /dev/null 2>&1
 
-docker run -d --restart unless-stopped --name twitchrecorder_"$1" \
-    -e channel="$1" \
+docker run -d --restart unless-stopped --name twitchrecorder_webserver \
+    -p $port:80 \
     -v /etc/timezone:/etc/timezone:ro \
     -v /etc/localtime:/etc/localtime:ro \
-    -v $basedir/mounts/archive/:/home/twitchrecorder/archive/ \
-    thirtysix361/twitchrecorder $1 > /dev/null 2>&1
+    -v $basedir/mounts/archive/:/var/www/html/archive/ \
+    thirtysix361/twitchrecorder_webserver > /dev/null 2>&1
 
 #######################################################################################
 
 if [ $? -eq 0 ]; then
-    info "twitchrecorder container deployed for $1"
+    info "webserver published on port: $port"
 else
-    error "failed to deploy container for $1"
+    error "failed to start the webserver"
 fi
 
 #######################################################################################

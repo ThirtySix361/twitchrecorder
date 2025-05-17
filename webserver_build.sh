@@ -11,13 +11,13 @@ basepath="${basedir}/${basefile}"
 
 #######################################################################################
 
-running=$(docker ps --format "{{.Names}}" | grep "twitchrecorder" | sed 's/^twitchrecorder_//' )
+info "started"
 
-echo "$running" | xargs -I {} docker rm -f twitchrecorder_{}
-
-bash "$basedir"/build.sh
+docker rm -f twitchrecorder_webserver
+docker build -t thirtysix361/twitchrecorder_webserver $basedir/build/webserver/
 docker system prune -f
+bash $basedir/webserver_run.sh
 
-echo "$running" | xargs -I {} bash "$basedir"/run.sh {}
+info "finished"
 
 #######################################################################################

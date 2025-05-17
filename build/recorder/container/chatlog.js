@@ -11,11 +11,12 @@ if (!channelName || !logFilePath) {
 }
 
 const url = `https://www.twitch.tv/popout/${channelName}/chat`;
+const dataDir = `/tmp/${channelName}-profile`;
 const resolvedPath = path.resolve(logFilePath);
 const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
 
 (async () => {
-    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'], userDataDir: dataDir });
     const page = await browser.newPage();
 
     await page.exposeFunction('logChatMessage', (message) => {

@@ -11,20 +11,12 @@ basepath="${basedir}/${basefile}"
 
 #######################################################################################
 
-if [ -z "${channel}" ] && [ -z "${1}" ] ; then
+if [ -z "${1}" ] ; then
     error "channel var not set"
     exit 1
 fi
 
-#######################################################################################
-
-if [ -n "${channel}" ]; then
-    CHANNEL_NAME="${channel}"
-fi
-
-if [ -n "${1}" ]; then
-    CHANNEL_NAME="${1}"
-fi
+CHANNEL_NAME="${1}"
 
 #######################################################################################
 
@@ -64,13 +56,14 @@ thumbnail() {
     local basename="${input%.*}"
     local INPUT_FILE="${basename}.mp4"
     local PREVIEW_IMAGE="${basename}.png"
+    local THUMBNAIL_LOG="/tmp/${CHANNEL_NAME}-thumbnail.log"
 
     echo "$(date)" > "${basedir}"/thumbnail.log 2>&1
 
     duration=$(ffmpeg -i "${INPUT_FILE}" 2>&1 | grep "Duration" | cut -d ' ' -f 4 | sed s/,//)
     halfduration=$(halving "${duration}")
 
-    ffmpeg -y -ss $halfduration -i "${INPUT_FILE}" -vframes 1 -q:v 2 "${PREVIEW_IMAGE}" >> "${basedir}"/thumbnail.log 2>&1
+    ffmpeg -y -ss $halfduration -i "${INPUT_FILE}" -vframes 1 -q:v 2 -vf "scale=iw*0.5:ih*0.5" "${PREVIEW_IMAGE}" >> "${THUMBNAIL_LOG}" 2>&1
 
     info "${PREVIEW_IMAGE} thumbnail created"
 }
@@ -83,8 +76,9 @@ fix() {
     local OUTPUT_FILE="${basename}.mp4"
     local TEMP_FILE="${basename}.processing"
     local RAW="${basename}.raw"
+    local FIX_LOG="/tmp/${CHANNEL_NAME}-fix.log"
 
-    echo "$(date)" > "${basedir}"/fix.log 2>&1
+    echo "$(date)" > "${FIX_LOG}" 2>&1
 
     info "${OUTPUT_FILE} fixing started"
 
@@ -94,7 +88,7 @@ fix() {
 
     rm -rf "${TEMP_FILE}"
 
-    ffmpeg -allowed_extensions ALL -fflags +genpts -copyts -start_at_zero -i "${INPUT_FILE}" -c copy -movflags +faststart -f mp4 "${TEMP_FILE}" >> "${basedir}"/fix.log 2>&1
+    ffmpeg -allowed_extensions ALL -fflags +genpts -copyts -start_at_zero -i "${INPUT_FILE}" -c copy -movflags +faststart -f mp4 "${TEMP_FILE}" >> "${FIX_LOG}" 2>&1
 
     mv "${TEMP_FILE}" "${OUTPUT_FILE}"
 
@@ -137,64 +131,69 @@ done
 
 #######################################################################################
 
-while true; do
+if [ -z "${2}" ] ; then
 
-    islive=$(is_twitch_live "${CHANNEL_NAME}")
+    while true; do
 
-    if [ "${islive}" == "1" ]; then
+        islive=$(is_twitch_live "${CHANNEL_NAME}")
 
-        mkdir -p "${OUTPUT_DIR}"
+        if [ "${islive}" == "1" ]; then
 
-        TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-        OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.m3u8"
-        CHAT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.log"
-        PREVIEW_IMAGE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.png"
-        INIT_FILE="${CHANNEL_NAME}_${TIMESTAMP}.init"
-        RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
+            mkdir -p "${OUTPUT_DIR}"
 
-        echo "$(date)" > "${basedir}"/ffmpeg.log 2>&1
+            TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+            OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.m3u8"
+            CHAT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.log"
+            PREVIEW_IMAGE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.png"
+            INIT_FILE="${CHANNEL_NAME}_${TIMESTAMP}.init"
+            RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
+            FFMPEG_LOG="/tmp/${CHANNEL_NAME}-ffmpeg.log"
 
-        info "${OUTPUT_FILE} recording started"
+            echo "$(date)" > "${FFMPEG_LOG}" 2>&1
 
-        touch "${RAW}"
+            info "${OUTPUT_FILE} recording started"
 
-        cp "${basedir}"/raw36.png "${PREVIEW_IMAGE}"
+            touch "${RAW}"
 
-        STREAM_URL=$(node "${basedir}"/getStreamURL.js "${CHANNEL_NAME}")
+            cp "${basedir}"/raw36.png "${PREVIEW_IMAGE}"
 
-        if [ $? -ne 0 ]; then
-            error $STREAM_URL
-            continue
+            STREAM_URL=$(node "${basedir}"/getStreamURL.js "${CHANNEL_NAME}")
+
+            if [ $? -ne 0 ]; then
+                error $STREAM_URL
+                continue
+            fi
+
+            node "${basedir}/chatlog.js" "${CHANNEL_NAME}" "${CHAT_FILE}" &
+            NODE_PID=$!
+
+            sleep 10
+
+            ffmpeg -fflags +genpts -i "${STREAM_URL}" \
+                -avoid_negative_ts make_zero \
+                -start_at_zero \
+                -c:v copy -c:a aac -b:a 160k \
+                -f hls \
+                -hls_time 60 \
+                -hls_list_size 0 \
+                -hls_flags append_list+delete_segments \
+                -hls_fmp4_init_filename "${INIT_FILE}" \
+                -hls_segment_type fmp4 \
+                "${OUTPUT_FILE}" >> "${FFMPEG_LOG}" 2>&1
+
+            kill $NODE_PID
+
+            info "${OUTPUT_FILE} recording finished"
+
+            fix "${RAW}" &
+
         fi
 
-        node "${basedir}/chatlog.js" "${CHANNEL_NAME}" "${CHAT_FILE}" &
-        NODE_PID=$!
+        sleep 60
 
-        sleep 10
+    done
 
-        ffmpeg -fflags +genpts -i "${STREAM_URL}" \
-            -avoid_negative_ts make_zero \
-            -start_at_zero \
-            -c:v copy -c:a aac -b:a 160k \
-            -f hls \
-            -hls_time 60 \
-            -hls_list_size 0 \
-            -hls_flags append_list+delete_segments \
-            -hls_fmp4_init_filename "${INIT_FILE}" \
-            -hls_segment_type fmp4 \
-            "${OUTPUT_FILE}" >> "${basedir}"/ffmpeg.log 2>&1
-
-        kill $NODE_PID
-
-        info "${OUTPUT_FILE} recording finished"
-
-        fix "${RAW}" &
-
-    fi
-
-    sleep 60
-
-done
+fi
 
 #######################################################################################
 

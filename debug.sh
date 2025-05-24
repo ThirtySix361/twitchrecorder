@@ -12,7 +12,7 @@ basepath=$basedir/$basefile
 #######################################################################################
 
 if [ -z "$1" ]; then
-    port=8081
+    port=8082
 else
     port="$1"
 fi
@@ -34,12 +34,19 @@ if [ -n "$2" ]; then exit 1; fi
 
 #######################################################################################
 
-response=$(docker run -d --restart unless-stopped --name "twitchrecorder_$port" \
-    -p $port:80 \
-    -v /etc/timezone:/etc/timezone:ro \
-    -v /etc/localtime:/etc/localtime:ro \
-    -v $basedir/mounts/archive/:/home/twitchrecorder/archive/ \
-    thirtysix361/twitchrecorder 2>&1)
+response=$(
+    docker run -d --restart unless-stopped --name "twitchrecorder_$port" \
+        -p $port:80 \
+        -v /etc/timezone:/etc/timezone:ro \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v $basedir/build/container/.htaccess:/home/twitchrecorder/.htaccess \
+        -v $basedir/build/container/chatlog.js:/home/twitchrecorder/chatlog.js \
+        -v $basedir/build/container/entrypoint.sh:/home/twitchrecorder/entrypoint.sh \
+        -v $basedir/build/container/getStreamURL.js:/home/twitchrecorder/getStreamURL.js \
+        -v $basedir/build/container/index.php:/home/twitchrecorder/index.php \
+        -v $basedir/build/container/record.sh:/home/twitchrecorder/record.sh \
+    thirtysix361/twitchrecorder 2>&1
+)
 
 if [ $? -eq 0 ]; then
     info "twitchrecorder container on port $port deployed"

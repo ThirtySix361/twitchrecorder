@@ -37,7 +37,6 @@ async function killThisTask(msg="", delay=0) {
     browser = await puppeteer.launch({
         headless: "new",
         args: [...(debug ? ["--remote-debugging-port=9224"] : []), '--start-maximized', '--ignore-certificate-errors', '--no-sandbox', '--disable-web-security', '--disable-setuid-sandbox', '--user-agent=' + userAgentString],
-        ignoreDefaultArgs: ['--disable-extensions'],
         userDataDir: undefined
     });
 

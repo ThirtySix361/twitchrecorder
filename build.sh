@@ -13,10 +13,8 @@ basepath="${basedir}/${basefile}"
 
 info "started"
 
-docker rm -f twitchrecorder_webserver
-docker build -t thirtysix361/twitchrecorder_webserver $basedir/build/webserver/
+docker build -t thirtysix361/twitchrecorder $basedir/src/
 docker system prune -f
-bash $basedir/webserver_run.sh
 
 info "finished"
 

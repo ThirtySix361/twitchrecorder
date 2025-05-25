@@ -4,8 +4,8 @@ on:
     branches:
       - "master"
     paths:
-      - 'build/recorder/**'
-      - 'build/webserver/**'
+      - 'src/container/**'
+      - 'src/webpage/**'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,11 +17,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build Docker image (recorder)
-        run: docker build -t thirtysix361/twitchrecorder $GITHUB_WORKSPACE/build/recorder/
-      - name: Build Docker image (webserver)
-        run: docker build -t thirtysix361/twitchrecorder_webserver $GITHUB_WORKSPACE/build/webserver/
-      - name: Push Docker image (recorder)
+      - name: Build Docker image
+        run: docker build -t thirtysix361/twitchrecorder $GITHUB_WORKSPACE/src/
+      - name: Push Docker image
         run: docker push thirtysix361/twitchrecorder:latest
-      - name: Push Docker image (webserver)
-        run: docker push thirtysix361/twitchrecorder_webserver:latest

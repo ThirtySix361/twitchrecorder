@@ -1,6 +1,6 @@
 <div align="center">
 
-[![version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/build/version.json?&style=for-the-badge&logo=wikidata)](https://github.com/ThirtySix361/twitchrecorder)
+[![version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/src/version.json?&style=for-the-badge&logo=wikidata)](https://github.com/ThirtySix361/twitchrecorder)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?&style=for-the-badge&logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
 [![Docker Image CI/CD](https://img.shields.io/github/actions/workflow/status/ThirtySix361/twitchrecorder/docker.yml?style=for-the-badge&logo=github&label=Docker%20Pipeline)](https://github.com/ThirtySix361/twitchrecorder/actions/workflows/docker.yml) <br>
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=github&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder/stargazers)
@@ -19,16 +19,11 @@ this container lets you download any twitch stream by giving a simple twitch cha
 
 [![features](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/features.png)](https://github.com/ThirtySix361/twitchrecorder/)
 
-<!--
-[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/preview.png)](https://36ip.de/twitchrecorder/)
--->
-
 </div>
 
 ## 🌐 links
 
-[source code](https://github.com/ThirtySix361/twitchrecorder) \
-[live demo](https://36ip.de/twitchrecorder/)
+[source code](https://github.com/ThirtySix361/twitchrecorder)
 
 ## 🔗 dependencies
 
@@ -52,44 +47,10 @@ docker pull thirtysix361/twitchrecorder
 step 3.
 
 ```bash
-bash run.sh <twitchchannelname>
-```
-
-perform `step 3` for each streamer you want to record.
-
-for example
-
-```bash
-bash run.sh shroud
-bash run.sh ninja
-bash run.sh pewdiepie
-bash run.sh montanablack88
-```
-
-## 🖥️ webserver
-
->//<br>//<samp> 💡 optionally start a webserver to playback your archive like netflix 😎</samp><br>//
-
-pull the image
-
-```bash
-docker pull thirtysix361/twitchrecorder_webserver
-```
-
-start the webserver on default port `8081`
-
-```bash
-bash webserver_run.sh
-```
-
-or on custom port with
-```bash
-bash webserver_run.sh <port>
-```
-
-for example
-```bash
-bash webserver_run.sh 8080
+bash run.sh
+# default port is: 8081
+# or for custom port use:
+bash run.sh <port>
 ```
 
 then acceess the webpage through your browser on `http://localhost:<port>`
@@ -106,7 +67,7 @@ then acceess the webpage through your browser on `http://localhost:<port>`
 
 ## 🧐 troubleshooting
 
-in case a container was forcefully killed, just re-deploy the container for the given streamer.
+in case a container was forcefully killed, just re-deploy the container.
 it will autofix the files which did not graceful finished.
 
 this can take a while on huge files, depending on your used hardware.
@@ -172,6 +133,7 @@ graph TD
     - [x] remove all advertisements by twitch from the stream
 - [x] webserver
     - [x] add an optional webserver-container for the webpage
+    - [x] remove the separate webserver-container and implement it directly into the recorder-container
 - [x] webpage
     - [x] list every video file from archive (order by filename)
         - [x] filter videos by streamer
@@ -188,3 +150,4 @@ graph TD
     - [x] improve responsive design especially for mobile
     - [x] redesign webpage
     - [x] implement hls for live-playback
+    - [x] add recording-task-management page to webpage

@@ -38,7 +38,7 @@ addToCommitMsg ""
 addToCommitMsg "filetracking:"
 addToCommitMsg ""
 
-git_status=$(git status --short)
+git_status=$(git status --short | sort)
 while read -r status file; do
     case "$status" in
         A)   addToCommitMsg "$(printf '%-18s %s' "Added" "$file")" ;;

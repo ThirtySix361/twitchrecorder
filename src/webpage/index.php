@@ -1,5 +1,57 @@
 <?php
 
+    # --------------------------------------------------------------------------------- #
+
+    function execute($cmd) {
+        $response = shell_exec($cmd);
+        return $response;
+    }
+
+    function killPidTree($pid) {
+        execute("kill -TERM $(pstree -p $pid | grep -oP '\(\K[0-9]+' )");
+    }
+
+    function isValidTwitchChannel($name) {
+        if (strlen($name) < 4 || strlen($name) > 25) { return false; }
+        if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) { return false; }
+        if (strpos($name, '_') === 0) { return false; }
+        return true;
+    }
+
+    function startRecordingTask($channel) {
+        $pidFilePath = "archive/$channel.pid";
+        if (!isValidTwitchChannel($channel)) { return "invalid twitch channelname"; }
+        if (file_exists($pidFilePath)) { return "task is already running"; }
+        $pid = execute("bash record.sh $channel >> /tmp/$channel.log 2>&1 & echo $!");
+        file_put_contents($pidFilePath, $pid);
+        return "task started";
+    }
+
+    function stopRecordingTask($channel) {
+        $pidFilePath = "archive/$channel.pid";
+        $profilePath = "/tmp/$channel-profile";
+        if (!isValidTwitchChannel($channel)) { return "invalid twitch channelname"; }
+        if (!file_exists($pidFilePath)) { return "task not found"; }
+        $pid = trim(file_get_contents($pidFilePath));
+        unlink($pidFilePath);
+        system("rm -rf $profilePath");
+        killPidTree($pid);
+        return "task stopped";
+    }
+
+    function escapeString($string) {
+        return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+    }
+
+    if ( $_GET["action"] != "" && $_GET["channel"] != "" ) {
+        $channel = $_GET["channel"];
+        $action = $_GET["action"];
+        if ( $action == "startRecordingTask" ) { $response = startRecordingTask(strtolower($channel)); }
+        if ( $action == "stopRecordingTask" ) { $response = stopRecordingTask(strtolower($channel)); }
+    }
+
+    # --------------------------------------------------------------------------------- #
+
     function removeExtensions($string) {
         $parts = explode('.', $string);
         array_pop($parts);
@@ -247,6 +299,10 @@
                 border: 0;
                 border-radius: 3px;
             }
+            .navigation button::before,
+            .navigation button::after {
+                content: "\00a0";
+            }
             .navigation button.active {
                 background-color: #777;
             }
@@ -424,7 +480,200 @@
     </head>
     <body>
 
-        <?php if (isset($_GET['video']) && is_file(__DIR__.$_GET['video'])) { ?>
+        <?php if ( isset($_GET['settings']) ) { ?>
+
+            <style>
+                form {
+                    display: flex;
+                    justify-content: safe center;
+                    align-items: safe center;
+                    flex-flow: row wrap;
+                }
+                .startNewRecordingTasks input[type="text"] {
+                    flex: 10;
+                    margin: 0px;
+                    padding: 5px 10px;
+                    background-color: #777;
+                    color: #000;
+                    text-align: center;
+                    border: 0;
+                }
+                .startNewRecordingTasks input[type="submit"] {
+                    flex: 1;
+                    margin: 0px;
+                    padding: 5px 10px;
+                    cursor: pointer;
+                    background-color: #555;
+                    color: #999;
+                    border: 0;
+                }
+                .startNewRecordingTasks input[type="text"]:focus {
+                    outline: 2px solid #999;
+                }
+                .startNewRecordingTasks input[type="submit"]:hover {
+                    background-color: #666;
+                }
+                .administration {
+                    display: flex;
+                    justify-content: center;
+                    flex-flow: row wrap;
+                    background-color: #444;
+                    width: 90vw;
+                    height: 75vh;
+                }
+                    .administration button {
+                        display: flex;
+                        justify-content: safe center;
+                        align-items: safe center;
+                        margin: 5px 10px;
+                        min-width: 150px;
+                        padding: 5px 10px;
+                        cursor: pointer;
+                        background-color: #555;
+                        color: #999;
+                        border: 0;
+                        border-radius: 3px;
+                    }
+                    .administration button::before,
+                    .administration button::after {
+                        content: "\00a0";
+                    }
+                    .administration button:hover {
+                        background-color: #666;
+                    }
+                .recordingTasks {
+                    overflow: auto;
+                    display: flex;
+                    justify-content: safe center;
+                    align-items: safe center;
+                    flex-direction: column;
+                    height: 100%;
+                }
+                .recordingOptions {
+                    display: flex;
+                    flex-flow: column wrap;
+                    height: 100%;
+                    flex: 3;
+                }
+                    .recordingOptionsHead {
+                        #overflow: auto;
+                        display: flex;
+                        justify-content: safe center;
+                        align-items: safe center;
+                        flex-flow: row wrap;
+                        flex: 1;
+                    }
+                    .recordingOptionsContent {
+                        overflow: auto;
+                        display: flex;
+                        justify-content: safe center;
+                        align-items: safe center;
+                        flex: 7;
+                        word-break: break-all;
+                        white-space: pre-wrap;
+                        font-size: 0.75rem;
+                    }
+
+                @media only screen and (max-width: 1200px) {
+                    .content {
+                        margin: 25px;
+                    }
+                    .administration {
+                        flex-direction: column;
+                        width: 100%;
+                        height: 100%;
+                    }
+                    .recordingTasks {
+                        flex-flow: row wrap;
+                        height: auto;
+                    }
+                    .recordingOptions > div, .administration > div {
+                        margin: 10px auto;
+                        padding: 10px;
+                    }
+                    .recordingOptionsContent{
+                        height: 50vh;
+                        flex: auto;
+                        font-size: 0.5rem;
+                    }
+                }
+            </style>
+
+            <div class="navigationwrapper">
+                <div class="navigation">
+                    <button onclick="location.href='<?=$baseurl?>'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="#000000" d="M177.5 414c-8.8 3.8-19 2-26-4.6l-144-136C2.7 268.9 0 262.6 0 256s2.7-12.9 7.5-17.4l144-136c7-6.6 17.2-8.4 26-4.6s14.5 12.5 14.5 22l0 72 288 0c17.7 0 32 14.3 32 32l0 64c0 17.7-14.3 32-32 32l-288 0 0 72c0 9.6-5.7 18.2-14.5 22z"/></svg></button>
+                </div>
+            </div>
+
+            <?php
+                function getPidChannelnames($dir) {
+                    $files = glob(rtrim($dir, '/\\') . '/*.pid');
+                    $names = array_map(function($file) {
+                        return pathinfo($file, PATHINFO_FILENAME);
+                    }, $files);
+                    sort($names);
+                    return $names;
+                }
+            ?>
+
+            <div class="contentwrapper">
+                <div class="content">
+                    <div class="startNewRecordingTasks">
+                        <form method="get">
+                            <input type="hidden" name="settings" value=""><input type="text" name="channel" placeholder="add new streamer by name here"/><input type="submit" value="submit"><input type="hidden" name="action" value="startRecordingTask">
+                        </form>
+                    </div>
+                    <div class="administration">
+                        <div class="recordingTasks">
+                            <?php foreach (getPidChannelnames("archive/") as $channel): ?>
+                                <button onclick="location.href='?settings&channel=<?=$channel?>'">
+                                    <?=$channel?>
+                                </button>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="recordingOptions">
+                            <div class="recordingOptionsHead">
+                                <?php if ( $_GET["channel"] != "" && $_GET["action"] != "stopRecordingTask" ) { echo "<div style='width: 100%; text-align: center;'>".$_GET["channel"]."</div>";?>
+                                    <button onclick="location.href='?settings&channel=<?= $_GET['channel'] ?>&action=logtask'"> log task </button>
+                                    <button onclick="location.href='?settings&channel=<?= $_GET['channel'] ?>&action=logffmpeg'"> log ffmpeg </button>
+                                    <button onclick="location.href='?settings&channel=<?= $_GET['channel'] ?>&action=logfix'"> log fix </button>
+                                    <button onclick="location.href='?settings&channel=<?= $_GET['channel'] ?>&action=logthumbnail'"> log thumbnail </button>
+                                    <button onclick="location.href='?settings&channel=<?= $_GET['channel'] ?>&action=logstreams'"> log streams </button>
+                                    <button onclick="window.open('https://twitch.tv/<?= $_GET['channel'] ?>', '_blank')"> open on twitch </button>
+                                    <button style="color: red;" onclick="if(confirm('Are you sure you want to stop recording this channel?')) location.href='?settings&channel=<?= $_GET['channel'] ?>&action=stopRecordingTask'"> stop recording </button>
+                                <?php } ?>
+                            </div>
+                            <div class="recordingOptionsContent"><?php
+                                    if ( $_GET["action"] != "" && $_GET["channel"] != "" ) {
+                                        $channel = $_GET["channel"];
+                                        $action = $_GET["action"];
+                                        $taskLogPath = "/tmp/$channel.log";
+                                        $ffmpegLogPath = "/tmp/$channel-ffmpeg.log";
+                                        $fixLogPath = "/tmp/$channel-fix.log";
+                                        $streamsLogPath = "/tmp/$channel-streams.log";
+                                        $thumbnailLogPath = "/tmp/$channel-thumbnail.log";
+                                        if ( $action == "startRecordingTask" ) { echo $response; }
+                                        if ( $action == "stopRecordingTask" ) { echo $response; }
+                                        if ( $action == "logtask" ) { echo ($log = escapeString(file_get_contents($taskLogPath))) != "" ? $log : 'log empty'; }
+                                        if ( $action == "logffmpeg" ) { echo ($log = escapeString(file_get_contents($ffmpegLogPath))) != "" ? $log : 'log empty'; }
+                                        if ( $action == "logfix" ) { echo ($log = escapeString(file_get_contents($fixLogPath))) != "" ? $log : 'log empty'; }
+                                        if ( $action == "logstreams" ) { echo ($log = escapeString(file_get_contents($streamsLogPath))) != "" ? $log : 'log empty'; }
+                                        if ( $action == "logthumbnail" ) { echo ($log = escapeString(file_get_contents($thumbnailLogPath))) != "" ? $log : 'log empty'; }
+                                    }
+                            ?></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    const div = document.querySelector('.recordingOptionsContent');
+                    if (div) div.scrollTop = div.scrollHeight;
+                });
+            </script>
+
+        <?php } else if (isset($_GET['video']) && is_file(__DIR__.$_GET['video'])) { ?>
 
             <?php
                 $videopath = $_GET['video'];
@@ -432,11 +681,6 @@
                     return $o['path'] === $videopath;
                 });
                 $video = array_values($match)[0] ?? null;
-
-                ########## debug ##########
-                // echo '<pre>';
-                // print_r($video);
-                // echo '</pre>';
             ?>
 
             <style>
@@ -446,11 +690,11 @@
                     padding: 15px;
                     margin: 25px;
                     width: 100%;
-                    height: 80vh;
+                    height: 85vh;
                     background-color: #555;
                 }
                 .video {
-                    width: 70vw;
+                    width: 75vw;
                 }
                 .chat {
                     flex:1;
@@ -488,15 +732,14 @@
                     .navigation div {
                         margin-top: 5px;
                     }
-
                     .content {
+                        height: 80vh;
                         flex-direction: column;
                     }
                     .video {
                         width: 100%;
                     }
                     .chat {
-                        max-height: 50vh;
                         line-height: 1rem;
                     }
 
@@ -543,6 +786,7 @@
                 document.addEventListener("DOMContentLoaded", () => {
 
                     navigationButtons = document.querySelectorAll('.navigation button');
+                    navigationButtons = Array.from(navigationButtons).slice(1);
                     navigationButtons.forEach(button => {
                         button.addEventListener('click', () => {
                             const dir = button.getAttribute('data-dir');
@@ -705,6 +949,7 @@
 
             <div class="navigationwrapper">
                 <div class="navigation">
+                    <button style="color: #999;" onclick="location.href='?settings'">administration</a>
                     <?php foreach ($subDirs as $dir): ?>
                         <button data-dir="<?= htmlspecialchars($dir) ?>"><?= htmlspecialchars($dir) ?></button>
                     <?php endforeach; ?>

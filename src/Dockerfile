@@ -19,5 +19,7 @@ RUN npm install puppeteer puppeteer-extra puppeteer-extra-plugin-stealth user-ag
 COPY --chown=twitchrecorder:twitchrecorder container/ /home/twitchrecorder/
 COPY --chown=twitchrecorder:twitchrecorder webpage/ /home/twitchrecorder/
 
+RUN echo "window.build = '$(date +%y%m%d)';" | cat - js/index.js > temp && mv temp js/index.js
+
 USER 0
 CMD ["bash", "/home/twitchrecorder/entrypoint.sh"]

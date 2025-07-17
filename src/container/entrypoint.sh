@@ -1,5 +1,15 @@
 #!/bin/bash
 
+if [ -n "$USER" ] && [ -n "$PASS" ]; then
+htpasswd -cb /home/twitchrecorder/.htpasswd "$USER" "$PASS"
+echo '<Directory /var/www/html>
+    AuthType Basic
+    AuthName "Protected"
+    AuthUserFile /home/twitchrecorder/.htpasswd
+    Require valid-user
+</Directory>' >> /etc/apache2/apache2.conf
+fi
+
 su -s /bin/bash twitchrecorder -c '
     cd /home/twitchrecorder/;
     for file in archive/*.pid; do

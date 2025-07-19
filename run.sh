@@ -17,6 +17,15 @@ else
     port="$1"
 fi
 
+if [ -n "$2" ]; then
+    if [[ "$2" == *:* ]]; then
+        user=$(echo "$2" | cut -d':' -f1);
+        pass=$(echo "$2" | cut -d':' -f2);
+    else
+        remove_only=true
+    fi
+fi
+
 mkdir -p $basedir/mounts/archive
 chmod -R 777 $basedir/mounts/archive
 
@@ -30,12 +39,14 @@ if docker inspect "twitchrecorder_$port" > /dev/null 2>&1; then
 #     error "container twitchrecorder_$port does not exist"
 fi
 
-if [ -n "$2" ]; then exit 1; fi
+if [ -n "$remove_only" ]; then exit 1; fi
 
 #######################################################################################
 
 response=$(docker run -d --restart unless-stopped --name "twitchrecorder_$port" \
     -p $port:80 \
+    -e USER="$user" \
+    -e PASS="$pass" \
     -v /etc/timezone:/etc/timezone:ro \
     -v /etc/localtime:/etc/localtime:ro \
     -v $basedir/mounts/archive/:/home/twitchrecorder/archive/ \

@@ -79,82 +79,35 @@ thumbnail() {
     duration=$(ffmpeg -i "${OUTPUT_FILE}" 2>&1 | grep "Duration" | cut -d ' ' -f 4 | sed s/,//)
     halfduration=$(halving "${duration}")
 
-    ffmpeg -y -ss $halfduration -i "${OUTPUT_FILE}" -vframes 1 -q:v 2 "${PREVIEW_IMAGE}" >> "${basedir}"/thumbnail.log 2>&1
+    ffmpeg -y -ss $halfduration -i "${OUTPUT_FILE}" -vframes 1 -q:v 2 "${PREVIEW_IMAGE}"
 
     info "${PREVIEW_IMAGE} thumbnail created"
-}
-
-fix() {
-    local input="$1"
-    local basename="${input%.*}"
-    local INPUT_FILE="${basename}.m3u8"
-    local INIT_FILE="${basename}.init"
-    local OUTPUT_FILE="${basename}.mp4"
-    local TEMP_FILE="${basename}.processing"
-    local RAW="${basename}.raw"
-
-    echo "$(date)" > "${basedir}"/fix.log 2>&1
-
-    info "${OUTPUT_FILE} fixing started"
-
-    rm -rf "${TEMP_FILE}"
-
-    ffmpeg -allowed_extensions ALL -fflags +genpts -copyts -start_at_zero -i "${INPUT_FILE}" -c copy -movflags +faststart -f mp4 "${TEMP_FILE}" >> "${basedir}"/fix.log 2>&1
-
-    mv "${TEMP_FILE}" "${OUTPUT_FILE}"
-
-    rm -rf "${INPUT_FILE}"
-    rm -rf "${INIT_FILE}"
-    rm -rf "${basename}"*.m4s
-
-    info "${OUTPUT_FILE} fixing finished"
-
-    thumbnail "${OUTPUT_FILE}"
-
-    rm "${RAW}"
 }
 
 #######################################################################################
 
 if [ -n "${VOD_ID}" ]; then
 
-        mkdir -p "${OUTPUT_DIR}"
+    mkdir -p "${OUTPUT_DIR}"
 
-        TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-        OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.m3u8"
-        PREVIEW_IMAGE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.png"
-        INIT_FILE="${CHANNEL_NAME}_${TIMESTAMP}.init"
-        RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
+    TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+    OUTPUT_FILE="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.mp4"
+    RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
 
-        echo "$(date)" > "${basedir}"/streamlink.log 2>&1
-        echo "$(date)" > "${basedir}"/ffmpeg.log 2>&1
+    info "${OUTPUT_FILE} recording started"
 
-        info "${OUTPUT_FILE} recording started"
+    touch "${RAW}"
 
-        touch "${RAW}"
+    streamlink -o - twitch.tv/videos/"${VOD_ID}" 720p,720p60,best | \
+        ffmpeg -fflags +genpts -i pipe:0 \
+            -c copy \
+            "${OUTPUT_FILE}"
 
-        cp "${basedir}"/raw36.png "${PREVIEW_IMAGE}"
+    info "${OUTPUT_FILE} recording finished"
 
-        streamlink -o - twitch.tv/videos/"${VOD_ID}" 720p,720p60,best 2>> "${basedir}"/streamlink.log | \
-            ffmpeg -fflags +genpts -i pipe:0 \
-                -c copy -bsf:a aac_adtstoasc \
-                -vsync 2 -async 1 \
-                -f hls \
-                -start_at_zero \
-                -hls_time 60 \
-                -hls_list_size 0 \
-                -hls_flags append_list+delete_segments \
-                -hls_fmp4_init_filename "${INIT_FILE}" \
-                -hls_segment_type fmp4 \
-                "${OUTPUT_FILE}" >> "${basedir}"/ffmpeg.log 2>&1
+    info "download finished"
 
-        info "${OUTPUT_FILE} recording finished"
-
-        fix "${RAW}"
-
-        info "download finished"
-
-        exit 1;
+    thumbnail "${RAW}"
 
 fi
 

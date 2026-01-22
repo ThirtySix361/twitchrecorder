@@ -1,0 +1,749 @@
+
+:root {
+    --dark_bg: #111111;
+    --dark: #1a1a1a;
+    --dark_fg: #222222;
+
+    --light_bg: #777777;
+    --light: #888888;
+    --light_fg: #999999;
+
+    --blue: #2c73d2;
+    --green: #2ecc71;
+    --red: #d51930;
+    --yellow: #ffe081;
+
+    --primary: var(--light);
+
+    --darker: brightness(0.75); /* hover effect */
+    --lighter: brightness(1.25); /* hover effect */
+}
+
+/* ----------------------------------------------------------------------------------------------  */
+
+@font-face {
+    src: url('../font/Teko-Bold.ttf') format('truetype');
+    font-family: 'Teko';
+    font-weight: inherit;
+    font-style: normal;
+}
+
+html {
+    background-color: var(--dark);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition:
+        background-color 3s ease,
+        color 3s ease,
+        border-color 3s ease,
+        outline-color 3s ease,
+        box-shadow 3s ease;
+}
+.init * {
+    transition: none !important;
+}
+
+body {
+    transition: margin 0.3s ease;
+    user-select: none;
+
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
+    font-family: 'Teko', sans-serif;
+    font-weight: inherit;
+    font-size: 1.25rem;
+    line-height: 0.75;
+    color: var(--light);
+}
+
+a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+    color: var(--light);
+    cursor: pointer;
+}
+
+a:hover {
+    filter: var(--lighter);
+}
+
+i {
+    color: var(--primary);
+}
+
+i:hover {
+    cursor: pointer;
+    filter: var(--lighter);
+}
+
+hr {
+    flex-basis: 100%;
+    border: none;
+    height: 2px;
+    background-color: var(--light);
+    color: var(--light)
+}
+
+.hint {
+    display: var(--hint-display, inline);
+}
+
+.hide {
+    display: none !important;
+}
+
+.underlined {
+    box-shadow: 0 2px 0 var(--primary);
+}
+
+#sideMenu {
+    z-index: 1000;
+    position: fixed;
+    display: flex;
+    justify-content: start;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    padding: 25px;
+    top: 0;
+    right: 0;
+    width: max-content;
+    height: 100vh;
+    background-color: var(--dark);
+    color: white;
+    overflow: auto;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+#sideMenu.open {
+    transform: translateX(0%);
+}
+body.sideMenu-open {
+    margin-right: max-content;
+}
+#sideMenu .settingsBtn {
+    display: none;
+}
+
+/* ----------------------------------------------------------------------------------------------  */
+
+.loadingplaceholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+}
+
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 4px solid var(--primary);
+    border-top: 4px solid var(--dark);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    animation-delay: 300ms;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+        opacity: 0;
+    }
+    1% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(360deg);
+        opacity: 1;
+    }
+}
+
+/* ----------------------------------------------------------------------------------------------  */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modaloverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease;
+}
+
+    .modalcontent {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        opacity: 0;
+        transform: scale(0.5);
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    .modalcontent.open {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+#notifyOptionsModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    padding: 25px;
+    width: fit-content;
+    max-width: calc(100vw - 50px);
+    background-color: var(--dark);
+}
+
+    #notifyOptionsModal .notifyOptionsButtons {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px 25px;
+    }
+
+        #notifyOptionsModal .notifyOptionsButtons .notifyOptionsButton {
+            padding: 10px 25px;
+            background-color: var(--dark_fg);
+            color: var(--primary);
+        }
+
+        #notifyOptionsModal .notifyOptionsButtons .notifyOptionsButton:hover {
+            cursor: pointer;
+            filter: var(--lighter);
+        }
+
+#themeModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 25px;
+    padding: 25px;
+    width: fit-content;
+    max-width: calc(100vw - 50px);
+    background-color: var(--dark);
+}
+    #themeModal #colorpicker {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 25px;
+    }
+    #themeModal #colorpicker > div {
+        width: 50px;
+        height: 50px;
+        border-radius: 100px;
+    }
+    #themeModal #colorpicker > div:hover {
+        cursor: pointer;
+        filter: var(--lighter);
+    }
+
+#notifyModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    margin: 25px;
+    padding: 25px;
+    width: fit-content;
+    max-width: calc(100vw - 50px);
+    background-color: var(--dark);
+}
+
+#addModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    padding: 25px;
+    width: 500px;
+    max-width: calc(100vw - 50px);
+    background-color: var(--dark);
+}
+
+    #addModal form {
+        width: 100%;
+    }
+
+    #addModal input {
+        display: block;
+        margin: 0 auto;
+        width: 100%;
+        padding: 25px;
+        background-color: var(--dark_bg);
+        color: var(--light);
+        border: 0px solid var(--dark_bg);
+        outline: none;
+        transition: none;
+    }
+
+    #addModal input:hover, #addModal input:focus {
+        filter: var(--lighter);
+        outline: 1px solid var(--primary);
+    }
+
+#logModal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 25px;
+    width: calc(100vw - 50px);
+    height: calc(100vh - 50px);
+    padding: 25px;
+    background-color: var(--dark_bg);
+}
+
+    #logModal #logsettings {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px 25px;
+    }
+
+    #logModal #logview {
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-all;
+        width: 100%;
+        height: 100%;
+        background-color: var(--dark);
+        user-select: text;
+        font-family: Arial, sans-serif;
+        line-height: initial;
+        font-size: 1rem;
+    }
+
+#videoModal {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-direction: row;
+    width: calc(100vw - 50px);
+    background-color: var(--dark_bg);
+}
+
+    #videoModal #videoOptions {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        align-items: end;
+        flex-direction: row;
+        gap: 25px;
+        padding: 10px;
+        top: 0;
+        left: 0;
+        width: auto;
+        background-color: rgba(0,0,0,0.75);
+        opacity: 0;
+        transition: opacity 0.5s;
+    }
+
+    #videoModal #videoOptions.show {
+        opacity: 1;
+    }
+
+    #videoModal #video {
+        max-width: calc(100vw - 50px);
+        max-height: calc(100vh - 50px);
+        width: 80%;
+        height: auto;
+    }
+    #videoModal #chat {
+        overflow: auto;
+        white-space: pre-wrap;
+        width: 20%;
+        background-color: var(--dark);
+        user-select: text;
+        line-height: initial;
+        font-size: 1rem;
+    }
+
+        #videoModal #chat .chatmessage {
+            display: flex;
+            justify-content: start;
+            align-items: baseline;
+        }
+
+            #videoModal #chat .time {
+                padding: 5px;
+                font-size: 0.75rem;
+                word-break: initial;
+            }
+            #videoModal #chat .msg {
+                display: inline-block;
+                overflow-wrap: anywhere;
+            }
+            #videoModal #chat .msg img {
+                vertical-align: middle;
+                width: 20px;
+            }
+            #videoModal #chat .msg > * {
+                margin: 0px 2px;
+            }
+
+/* ----------------------------------------------------------------------------------------------  */
+
+#headerwrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--dark);
+}
+
+    #header {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        margin: 25px;
+    }
+
+        #header .left {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #header .left a {
+            font-size: 3rem;
+        }
+        #header #diskusage {
+            color: var(--primary);
+        }
+        #header .mid {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex: 1;
+        }
+        #header .mid a {
+            transition: none;
+            padding: 5px;
+        }
+
+        #header .mid a.active, #header .mid a:hover {
+            box-shadow: 0 2px 0 var(--primary);
+        }
+
+        #header .right {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+            max-width: 150px;
+            gap: 10px;
+        }
+
+        #header .toggle {
+            display: none;
+            cursor: pointer;
+            gap: 5px;
+            padding: 5px;
+        }
+
+/* ----------------------------------------------------------------------------------------------  */
+
+#contentwrapper {
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex: 1;
+    background-color: var(--dark_bg);
+}
+
+    #content {
+        max-width: 1600px;
+        width: 100%;
+        margin: 25px;
+    }
+
+        .channeloptions {
+            display: flex;
+            justify-content: start;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 5px 15px;
+            font-size: 1rem;
+        }
+
+            .channelname {
+                font-size: 2.5rem;
+                color: var(--primary);
+            }
+
+        .videowrapper {
+            margin: 15px auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+            .video {
+                overflow: hidden;
+                position: relative;
+                background-color: var(--dark);
+                max-width: 300px;
+                width: 80vw;
+                height: 168.75px;
+            }
+
+            .video img {
+                display: block;
+                max-width: 300px;
+                width: 80vw;
+                height: 168.75px;
+            }
+
+            .videoimage {
+                position: relative;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+                height: 100%;
+                font-size: 2rem;
+            }
+            .videoimage i {
+                font-size: 3rem;
+            }
+
+            .videoimage img {
+                position: absolute;
+            }
+
+            .video .seen {
+                filter: brightness(25%);
+            }
+
+            .videooverlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+            }
+
+                .progresswrapper {
+                    opacity: 0;
+                    position: absolute;
+                    width: 100%;
+                    height: 10px;
+                    bottom: 0;
+                    background-color: var(--light);
+                }
+                    .progressbar {
+                        position: absolute;
+                        height: 10px;
+                        bottom: 0;
+                        background-color: var(--primary);
+                    }
+
+            .videoinfo {
+                z-index: 1;
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                width: 100%;
+                height: 50%;
+                font-size: 1.25rem;
+                background-color: var(--dark_fg);
+                transform: translateY(-100%);
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                padding: 25px;
+                pointer-events: none;
+            }
+
+            .videoinfo > div:first-child {
+                flex-basis: 100%;
+                margin-bottom: 10px;
+            }
+
+            .video:hover .videoinfo, .video:focus-within .videoinfo {
+                opacity: 1;
+                transform: translateY(0%);
+                pointer-events: auto;
+            }
+
+            .videosettings {
+                z-index: 1;
+                position: absolute;
+                top: 0;
+                left: 0;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 50%;
+                font-size: 2rem;
+                background-color: var(--dark_fg);
+                transform: translateY(200%);
+                opacity: 0;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                pointer-events: none;
+            }
+
+            .videosettings div, .videosettings a {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+            }
+
+            .videosettings div:last-child i {
+                color: var(--red);
+            }
+
+            .videosettings div:hover {
+                cursor: pointer;
+                filter: var(--lighter);
+            }
+
+            .video:hover .videosettings, .video:focus-within .videosettings {
+                opacity: 1;
+                transform: translateY(100%);
+                pointer-events: auto;
+            }
+
+/* ----------------------------------------------------------------------------------------------  */
+
+#footerwrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--dark);
+}
+
+    #footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 5px 25px;
+        margin: 25px;
+    }
+
+/* ----------------------------------------------------------------------------------------------  */
+
+@media only screen and (max-width: 800px) {
+
+    body.sideMenu-open {
+        margin-right: 0px !important;
+    }
+
+    #sideMenu .settingsBtn {
+        display: flex;
+    }
+
+    #sideMenu {
+        left: 0;
+        bottom: 0;
+        width: calc(100vw);
+        transform: translateX(100%);
+    }
+
+    #videoModal {
+        flex-direction: column;
+    }
+
+    #videoModal #video {
+        max-height: calc(50vh - 25px);
+        width: 100%;
+    }
+
+    #videoModal #chat {
+        width: 100%;
+    }
+
+    #header {
+        flex-direction: column;
+    }
+
+    #header .left {
+        order: 1;
+    }
+
+    #header .right {
+        order: 2;
+        margin-top: 10px;
+    }
+
+    #header .toggle {
+        display: flex;
+        order: 3;
+        margin-top: 10px;
+    }
+
+    #header .mid {
+        display: none;
+        order: 4;
+        margin-top: 10px;
+    }
+
+        #header .mid a {
+            margin: 0 100%;
+        }
+
+    #header .mid.show {
+        display: flex;
+    }
+
+    .channeloptions div:first-child {
+        flex-basis: 100%;
+    }
+
+    #logModal #logview {
+        font-size: 0.5rem;
+    }
+
+}

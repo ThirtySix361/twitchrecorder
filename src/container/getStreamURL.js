@@ -65,6 +65,13 @@ function pickUrlsByPriority(qualityEntries, priorityList) {
     });
 
     [page] = await browser.pages();
+    // https://wiki.cdn-perfprod.com/guides/proxy/host-your-own-proxy#list-of-known-a-d-free-countries
+    await page.setExtraHTTPHeaders({ 'Accept-Language': 'be-BY,be' });
+    await page.emulateTimezone('Europe/Minsk');
+    await page.evaluateOnNewDocument(() => {
+        Object.defineProperty(navigator, 'language', { get: () => 'be-BY' });
+        Object.defineProperty(navigator, 'languages', { get: () => ['be-BY', 'be'] });
+    });
 
     try {
 
@@ -104,7 +111,7 @@ function pickUrlsByPriority(qualityEntries, priorityList) {
             console.log(selected);
         } else {
             fs.appendFileSync(logFile, JSON.stringify(qualityEntries, null, 2) + '\n' + JSON.stringify(priorities, null, 0) + '\n' + JSON.stringify(selected.info, null, 0) + '\n');
-            fs.appendFileSync(logFile, '-------------------------------------------------');
+            fs.appendFileSync(logFile, '-------------------------------------------------' + '\n');
             killThisTask(selected.url);
         }
 

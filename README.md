@@ -6,7 +6,7 @@
 [![stars](https://img.shields.io/github/stars/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=github&label=github+stars)](https://github.com/ThirtySix361/twitchrecorder/stargazers)
 [![pulls](https://img.shields.io/docker/pulls/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder)
 [![stars](https://img.shields.io/docker/stars/thirtysix361/twitchrecorder.svg?style=for-the-badge&logo=docker)](https://hub.docker.com/r/thirtysix361/twitchrecorder) <br>
-[![mail](https://img.shields.io/badge/contact-dev%4036ip.de-blue?style=for-the-badge&&logo=maildotru)](mailto:dev@36ip.de)
+[![mail](https://img.shields.io/badge/contact-dev%4036ip.de-blue?style=for-the-badge&&logo=maildotru)](mailto:dev@36ip.de?subject=twitchrecorder)
 [![discord](https://img.shields.io/badge/discord-.thirtysix-5865F2?style=for-the-badge&logo=discord)](https://discord.com/users/323043165021929482)
 
 </div>
@@ -51,6 +51,11 @@ bash run.sh
 # default port is: 8081
 # or for custom port use:
 bash run.sh <port>
+# you can also protect the access
+# by giving username and password like that:
+#     bash run.sh <port> "<username>:<password>"
+# example:
+bash run.sh 8081 "myUser:MyPassword"
 ```
 
 then acceess the webpage through your browser on `http://localhost:<port>`
@@ -80,15 +85,14 @@ graph TD
     start[start]
     checkraw[check for .raw files]
     islive{is streamer live?}
-    finalthumb[create final thumbnail]
+    finalthumb[create thumbnail .png]
     deleteraw[delete .raw indicaton file]
     sleep[sleep for 60 seconds]
-    defaultthumbnail[create default .raw thumbnail]
     createraw[create .raw indication file]
     startrecording[start recording task]
     chattask[start chat scraping task]
     streamend{stream end?}
-    fixrecording[fix recording]
+    fixrecording[convert to .mp4]
 
     start --> islive
     start --> checkraw
@@ -96,13 +100,11 @@ graph TD
     islive -->|no| sleep
     islive -->|yes| createraw
 
-    createraw --> defaultthumbnail
-    defaultthumbnail --> chattask
+    createraw --> chattask
     chattask --> startrecording
     startrecording --> streamend
 
     streamend -->|yes| fixrecording
-    streamend -->|no| streamend
 
     checkraw --> fixrecording
 
@@ -115,6 +117,7 @@ graph TD
 ```
 
 ## 📝 todo list
+
 - [x] container
     - [x] runs as user instead of root
     - [x] allowing multiple instances at same time for unlimited parallel recordings
@@ -125,6 +128,7 @@ graph TD
     - [x] prevent file from beeing corrupted after container shutdown while file is still being written
     - [x] autofix final .mp4 file on stream end
         - [x] autofix unfinished files on container startup
+        - [x] prevent parallel fixing, because its much faster in sequential order
     - [x] take thumbnail from final .mp4 on stream end
     - [x] capture chat into textfile
         - [x] capture twitch emotes
@@ -134,6 +138,7 @@ graph TD
 - [x] webserver
     - [x] add an optional webserver-container for the webpage
     - [x] remove the separate webserver-container and implement it directly into the recorder-container
+    - [x] add optional user/password authentication
 - [x] webpage
     - [x] list every video file from archive (order by filename)
         - [x] filter videos by streamer
@@ -147,6 +152,7 @@ graph TD
     - [x] display chat next to the video
         - [x] sync chat with video
     - [x] release a demo version
+    - [x] remove the demo version
     - [x] improve responsive design especially for mobile
     - [x] redesign webpage
     - [x] implement hls for live-playback

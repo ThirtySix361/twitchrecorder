@@ -1,7 +1,9 @@
 #!/bin/bash
 
-info() { command echo $(date +"%Y-%m-%d %H:%M:%S") [INFO] "$0": "$@" >&2 ; }
+info() { command echo $(date +"%Y-%m-%d %H:%M:%S") [INFO] "$0": "$@" >&2; }
 error() { command echo $(date +"%Y-%m-%d %H:%M:%S") [ERROR] "$0": "$@" >&2; }
+log_info() { command echo $(date +"%Y-%m-%d %H:%M:%S") [INFO] "$0": "$@"; }
+log_error() { command echo $(date +"%Y-%m-%d %H:%M:%S") [ERROR] "$0": "$@"; }
 
 #######################################################################################
 
@@ -58,7 +60,7 @@ thumbnail() {
     local THUMBNAIL="${basename}.png"
     local LOG="/tmp/${CHANNEL_NAME}-thumbnail.log"
 
-    echo "started $(date)" > "${LOG}"
+    log_info "${THUMBNAIL} started" > "${LOG}"
 
     duration=$(ffmpeg -i "${INPUT}" 2>&1 | grep "Duration" | cut -d ' ' -f 4 | sed s/,//)
     halfduration=$(halving "${duration}")
@@ -66,48 +68,58 @@ thumbnail() {
     ffmpeg -y -ss $halfduration -i "${INPUT}" -vframes 1 -q:v 2 -vf "scale=iw*0.5:ih*0.5" "${THUMBNAIL}" 2>&1 | awk 'NF {print strftime("%Y-%m-%d %H:%M:%S"), $0; fflush()}' >> "${LOG}"
 
     info "${THUMBNAIL} thumbnail created"
+    log_info "${THUMBNAIL} finished" >> "${LOG}"
 }
 
 fix() {
     local input="$1"
     local basename="${input%.*}"
     local INPUT="${basename}.m3u8"
+    local M4S="${basename}.m4s"
     local OUTPUT="${basename}.mp4"
-    local INIT="${basename}.init"
     local TEMP="${basename}.processing"
     local RAW="${basename}.raw"
     local CHAT="${basename}.log"
     local THUMBNAIL="${basename}.png"
     local LOG="/tmp/${CHANNEL_NAME}-fix.log"
+    local LOCK="/tmp/fix.lock"
 
-    echo "started $(date)" > "${LOG}"
+    {
+        if ! flock -n 36; then
+            info "${INPUT} waiting for other fixing task to finish.."
+            log_info "${INPUT} waiting for other fixing task to finish.." >> "${LOG}"
+        fi
 
-    info "${INPUT} fixing started"
+        flock -x 36
 
-    if [ -f "${INPUT}" ] && [ -s "${INPUT}" ]; then
-        if [[ $(tail -n 1 "${INPUT}") != "#EXT-X-ENDLIST" ]]; then echo "#EXT-X-ENDLIST" >> "${INPUT}"; fi
-        rm -rf "${TEMP}"
-    else
-        error "${INPUT} not found or empty"
-        rm -rf "${INPUT}" "${INIT}" "${basename}"*.m4s "${RAW}" "${OUTPUT}" "${CHAT}" "${THUMBNAIL}"
-        error "${INPUT} and related messed up files removed"
-        error "${INPUT} fixing failed"
-        echo "${INPUT} fixing failed" >> "${LOG}"
-        return
-    fi
+        info "${INPUT} fixing started"
+        log_info "${INPUT} fixing started" > "${LOG}"
 
-    ffmpeg -y -allowed_extensions ALL -fflags +genpts -copyts -start_at_zero -i "${INPUT}" -c copy -movflags +faststart -f mp4 "${TEMP}" 2>&1 | awk 'NF {print strftime("%Y-%m-%d %H:%M:%S"), $0; fflush()}' >> "${LOG}"
-    local ffmpeg_exit=$?
+        if [ -f "${INPUT}" ] && [ -s "${INPUT}" ]; then
+            if [[ $(tail -n 1 "${INPUT}") != "#EXT-X-ENDLIST" ]]; then echo "#EXT-X-ENDLIST" >> "${INPUT}"; fi
+            rm -rf "${TEMP}"
+        else
+            error "${INPUT} fixing failed: m3u8 not found or empty (related files removed)"
+            log_error "${INPUT} fixing failed" >> "${LOG}"
+            rm -rf "${INPUT}" "${M4S}" "${RAW}" "${OUTPUT}" "${CHAT}" "${THUMBNAIL}"
+            return
+        fi
 
-    if [ -f "${TEMP}" ] && [ $ffmpeg_exit -eq 0 ]; then
-        mv "${TEMP}" "${OUTPUT}"
-        rm -rf "${INPUT}" "${INIT}" "${basename}"*.m4s "${RAW}"
-        info "${INPUT} fixing finished"
-        thumbnail "${OUTPUT}"
-    else
-        error "${INPUT} fixing failed"
-        echo "${INPUT} fixing failed" >> "${LOG}"
-    fi
+        ffmpeg -y -i "${INPUT}" -c copy -movflags +faststart -f mp4 "${TEMP}" 2>&1 | awk 'NF {print strftime("%Y-%m-%d %H:%M:%S"), $0; fflush()}' >> "${LOG}"
+        local ffmpeg_exit=$?
+
+        if [ -f "${TEMP}" ] && [ $ffmpeg_exit -eq 0 ]; then
+            mv "${TEMP}" "${OUTPUT}"
+            rm -rf "${INPUT}" "${M4S}" "${RAW}"
+            info "${INPUT} fixing finished"
+            log_info "${INPUT} fixing finished" >> "${LOG}"
+            thumbnail "${OUTPUT}"
+        else
+            error "${INPUT} fixing failed"
+            log_error "${INPUT} fixing failed" >> "${LOG}"
+        fi
+
+    } 36>"${LOCK}"
 }
 
 is_twitch_live() {
@@ -132,7 +144,7 @@ is_twitch_live() {
 
 for file in "${basedir}"/archive/"${CHANNEL_NAME}"/*.raw; do
     if [ -f "$file" ]; then
-        (sleep 5 && fix "$file") &
+        (sleep 1 && fix "$file") &
     fi
 done
 
@@ -151,22 +163,17 @@ if [ -z "${2}" ]; then
             TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
             OUTPUT="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.m3u8"
             CHAT="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.log"
-            PREVIEW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.png"
-            INIT="${CHANNEL_NAME}_${TIMESTAMP}.init"
             RAW="${OUTPUT_DIR}/${CHANNEL_NAME}_${TIMESTAMP}.raw"
             LOG="/tmp/${CHANNEL_NAME}-ffmpeg.log"
             STREAMS="/tmp/${CHANNEL_NAME}-streams.log"
 
-            echo "started $(date)" >> "${LOG}" 2>&1
-            echo "started $(date)" >> "${STREAMS}" 2>&1
-
             info "${OUTPUT} recording started"
+            log_info "${OUTPUT} recording started" >> "${LOG}"
+            log_info "${OUTPUT} recording started" >> "${STREAMS}"
 
             touch "${RAW}"
 
-            cp "${basedir}"/raw36.png "${PREVIEW}"
-
-            STREAM_URL=$(node "${basedir}"/getStreamURL.js "${CHANNEL_NAME}" "720,1080,best")
+            STREAM_URL=$(node "${basedir}"/getStreamURL.js "${CHANNEL_NAME}" "720,1080,best") # example "720,1080,best" or 0 (best), 1 (second best), 2 (third best) - also mixable like: "720,480,1080,5,4,3,2,1,0,best"
 
             if [ $? -ne 0 ]; then
                 error $STREAM_URL
@@ -178,25 +185,28 @@ if [ -z "${2}" ]; then
 
             sleep 10
 
-            timeout 1439m \
-                ffmpeg -fflags +genpts \
+            timeout --foreground 1439m \
+                ffmpeg -y \
+                    -fflags +genpts \
+                    -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+                    -rw_timeout 30000000 -timeout 30000000 \
                     -i "${STREAM_URL}" \
-                    -protocol_opts http_persistent=1,reconnect=3 \
-                    -loglevel warning -xerror \
+                    -loglevel error \
                     -avoid_negative_ts make_zero \
                     -start_at_zero \
                     -c:v copy -c:a aac -b:a 160k \
                     -f hls \
-                    -hls_time 60 \
+                    -hls_time 5 \
                     -hls_list_size 0 \
-                    -hls_flags append_list+delete_segments \
-                    -hls_fmp4_init_filename "${INIT}" \
+                    -hls_flags single_file+append_list \
                     -hls_segment_type fmp4 \
                     "${OUTPUT}" 2>&1 | awk 'NF {print strftime("%Y-%m-%d %H:%M:%S"), $0; fflush()}' >> "${LOG}"
 
             kill $NODE_PID
 
             info "${OUTPUT} recording finished"
+            log_info "${OUTPUT} recording finished" >> "${LOG}"
+            log_info "${OUTPUT} recording finished" >> "${STREAMS}"
 
             fix "${RAW}" &
 

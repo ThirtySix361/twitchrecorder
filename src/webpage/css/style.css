@@ -357,6 +357,7 @@ body.sideMenu-open {
 }
 
     #videoModal #videoOptions {
+        z-index: 999;
         position: absolute;
         display: flex;
         justify-content: center;
@@ -677,6 +678,10 @@ body.sideMenu-open {
 
 @media only screen and (max-width: 800px) {
 
+    .hideonmobile {
+        display: none;
+    }
+
     body.sideMenu-open {
         margin-right: 0px !important;
     }
@@ -692,7 +697,12 @@ body.sideMenu-open {
         transform: translateX(100%);
     }
 
+    .modaloverlay {
+        align-items: start;
+    }
+
     #videoModal {
+        top: 25px;
         flex-direction: column;
     }
 
@@ -703,6 +713,12 @@ body.sideMenu-open {
 
     #videoModal #chat {
         width: 100%;
+    }
+
+    #videoModal #videoOptions {
+        opacity: 1 !important;
+        position: relative;
+        background-color: var(--dark_bg);
     }
 
     #header {

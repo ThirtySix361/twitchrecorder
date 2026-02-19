@@ -209,7 +209,12 @@ function handleVideoTimeUpdate() {
         var video = document.querySelector('#video');
         saveVideoTime(video);
         saveVideoLength(video);
-        updateChatWindow(video);
+        let chat = document.querySelector('#chat');
+        if (chat) {
+            if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 100) {
+                updateChatWindow(video);
+            }
+        }
     } catch (e) { }
 }
 
@@ -722,12 +727,12 @@ async function videoModal(target) {
     }
 
     var string = `<div id="videoModal">
+        <video id="video" src="${target.url_video}" filename="${target.filename}" controls></video>
         <div id="videoOptions">
-            <div>${target.name}</div><div>${target.date}</div><div>${target.time}</div><div>${target.size} GB</div>
+            <div class="hideonmobile">${target.name}</div><div class="hideonmobile">${target.date}</div><div class="hideonmobile">${target.time}</div><div class="hideonmobile">${target.size} GB</div>
             <input style="accent-color:var(--primary);" type="range" min="0.0" max="4.0" step="0.1" value="1" oninput="document.querySelector('video').playbackRate=this.value; this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)"><span style="width: 25px">1.0</span>
             <div onclick="(async () => { await renderModal(getModalOptionsString('Do you really want to delete this recording permanently?', {'yes':true, 'no':false})) && deleteVideo('#${target.filename}', '${target.path}') })()"><i class="fa-solid fa-trash"></i></div>
         </div>
-        <video id="video" src="${target.url_video}" filename="${target.filename}" controls></video>
         <div id="chat" chaturl="${target.url_log}"></div>
     </div>`;
 
@@ -768,7 +773,7 @@ async function videoModal(target) {
             height: {
                 copy: true,
                 condition: () => window.innerWidth >= 800,
-                fallback: () => (window.innerHeight - video.clientHeight - 50) + 'px'
+                fallback: () => (window.innerHeight - video.clientHeight - 50 - 40) + 'px'
             }
         });
     }, 300);

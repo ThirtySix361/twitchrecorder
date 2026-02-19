@@ -11,23 +11,23 @@ basepath=$basedir/$basefile
 
 #######################################################################################
 
-if [ -z "$1" ]; then
-    port=8081
-else
-    port="$1"
-fi
+port=8081
+mountpath="$basedir/mnt/archive/"
 
-if [ -n "$2" ]; then
-    if [[ "$2" == *:* ]]; then
-        user=$(echo "$2" | cut -d':' -f1);
-        pass=$(echo "$2" | cut -d':' -f2);
-    else
-        remove_only=true
-    fi
-fi
-
-mkdir -p $basedir/mounts/archive
-chmod -R 777 $basedir/mounts/archive
+for arg in "$@"; do
+    case $arg in
+        port=*) port="${arg#*=}" ;;
+        mount=*) mountpath="${arg#*=}" ;;
+        auth=*)
+            auth="${arg#*=}"
+            if [[ "$auth" == *:* ]]; then
+                user="${auth%%:*}"
+                pass="${auth##*:}"
+            fi ;;
+        r) remove_only=true ;;
+        *) echo "Unbekannter Parameter: $arg" ;;
+    esac
+done
 
 #######################################################################################
 
@@ -41,6 +41,9 @@ fi
 
 if [ -n "$remove_only" ]; then exit 1; fi
 
+mkdir -p $mountpath
+chmod -R 777 $mountpath
+
 #######################################################################################
 
 response=$(docker run -d --restart unless-stopped --name "twitchrecorder_$port" \
@@ -49,7 +52,7 @@ response=$(docker run -d --restart unless-stopped --name "twitchrecorder_$port" 
     -e PASS="$pass" \
     -v /etc/timezone:/etc/timezone:ro \
     -v /etc/localtime:/etc/localtime:ro \
-    -v $basedir/mounts/archive/:/home/twitchrecorder/archive/ \
+    -v $mountpath:/home/twitchrecorder/archive/ \
     thirtysix361/twitchrecorder 2>&1)
 
 if [ $? -eq 0 ]; then

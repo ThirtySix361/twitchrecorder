@@ -11,23 +11,23 @@ basepath=$basedir/$basefile
 
 #######################################################################################
 
-if [ -z "$1" ]; then
-    port=8082
-else
-    port="$1"
-fi
+port=8082
+mountpath="$basedir/mnt/debug/"
 
-if [ -n "$2" ]; then
-    if [[ "$2" == *:* ]]; then
-        user=$(echo "$2" | cut -d':' -f1);
-        pass=$(echo "$2" | cut -d':' -f2);
-    else
-        remove_only=true
-    fi
-fi
-
-mkdir -p $basedir/mounts/debug
-chmod -R 777 $basedir/mounts/debug
+for arg in "$@"; do
+    case $arg in
+        port=*) port="${arg#*=}" ;;
+        mount=*) mountpath="${arg#*=}" ;;
+        auth=*)
+            auth="${arg#*=}"
+            if [[ "$auth" == *:* ]]; then
+                user="${auth%%:*}"
+                pass="${auth##*:}"
+            fi ;;
+        r) remove_only=true ;;
+        *) echo "Unbekannter Parameter: $arg" ;;
+    esac
+done
 
 #######################################################################################
 
@@ -40,6 +40,9 @@ if docker inspect "twitchrecorder_$port" > /dev/null 2>&1; then
 fi
 
 if [ -n "$remove_only" ]; then exit 1; fi
+
+mkdir -p $mountpath
+chmod -R 777 $mountpath
 
 #######################################################################################
 
@@ -59,7 +62,7 @@ response=$(
         -v $basedir/src/container/entrypoint.sh:/home/twitchrecorder/entrypoint.sh \
         -v $basedir/src/container/getStreamURL.js:/home/twitchrecorder/getStreamURL.js \
         -v $basedir/src/container/record.sh:/home/twitchrecorder/record.sh \
-        -v $basedir/mounts/debug/:/home/twitchrecorder/archive/ \
+        -v $mountpath:/home/twitchrecorder/archive/ \
     thirtysix361/twitchrecorder 2>&1
 )
 

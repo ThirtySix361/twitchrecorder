@@ -48,14 +48,21 @@ step 3.
 
 ```bash
 bash run.sh
-# default port is: 8081
-# or for custom port use:
-bash run.sh <port>
-# you can also protect the access
-# by giving username and password like that:
-#     bash run.sh <port> "<username>:<password>"
-# example:
-bash run.sh 8081 "myUser:MyPassword"
+```
+default port is: ``8081``<br>
+default mountpath is: ``mnt/archive/``<br>
+default credentials are: `none`
+
+you can customize them like this:
+```bash
+# set custom port
+bash run.sh port=8000
+
+# set custom port and mountpath
+bash run.sh port=8000 mount=/home/user/twitchrecorder/
+
+# you can also protect the access by set some credentials with the auth parameter
+bash run.sh port=8000 mount=/home/user/twitchrecorder/ auth=username:password
 ```
 
 then acceess the webpage through your browser on `http://localhost:<port>`
@@ -68,7 +75,7 @@ then acceess the webpage through your browser on `http://localhost:<port>`
 
 </div>
 
->//<br>//<samp> 💡 the `.mp4` files are stored in the `mounts/archive/<channelname>/` directory </samp><br>//
+>//<br>//<samp> 💡 the `.mp4` files are stored in the `mnt/archive/<channelname>/` directory </samp><br>//
 
 ## 🧐 troubleshooting
 
@@ -147,10 +154,12 @@ graph TD
         - [x] remove empty directorys
         - [x] remove last time position
     - [x] video navigation buttons
+    - [x] optimize for mobile
     - [x] save last time position to localstorage
     - [x] load last time position on open
     - [x] display chat next to the video
         - [x] sync chat with video
+        - [x] auto-scroll only, if chat is at bottom
     - [x] release a demo version
     - [x] remove the demo version
     - [x] improve responsive design especially for mobile

@@ -333,10 +333,11 @@ function getVideoString(video) {
     `;
 }
 
-function notifyModal(msg, icon = false) {
+function notifyModal(msg, icon = false, evalafter = false, id = false) {
+    if (!msg && id) { renderModal(false, false, id); return };
     icon = icon || `<i class="fa-solid fa-circle-info"></i>`;
     var string = `<div id="notifyModal"><div>${icon}</div><div>${msg}</div></div>`;
-    renderModal(string);
+    renderModal(string, evalafter, id);
 }
 
 function getModalOptionsString(msg, options, icon = false) {
@@ -358,8 +359,13 @@ function getModalOptionsString(msg, options, icon = false) {
     return html;
 }
 
-function renderModal(content, evalafter = false) {
+function renderModal(content, evalafter = false, id = false) {
+    //document.querySelectorAll(".modaloverlay").forEach(function (el) { el.remove(); });
+    if (id) { document.querySelectorAll(`#${id}`).forEach(function (el) { el.remove(); }); }
+    if (content == false) { return; }
+
     var overlay = document.createElement("div");
+    overlay.id = id;
     overlay.className = "modaloverlay";
 
     var modal = document.createElement("div");
@@ -472,6 +478,58 @@ async function callAction(action, channel) {
     var result = await apiFetch(url);
     if (!result) { return "network error"; }
     return result;
+}
+
+function secondsToTime(seconds) {
+    var hours = Math.floor(seconds / 3600);
+    var minutes = Math.floor((seconds % 3600) / 60);
+    var secs = seconds % 60;
+
+    return String(hours).padStart(2, '0') + ':' +
+        String(minutes).padStart(2, '0') + ':' +
+        String(secs).padStart(2, '0');
+}
+
+async function makeClip(videopath) {
+
+    if (window.makeClipPos1 === undefined) {
+        var pos = Math.floor(document.querySelector('video').currentTime);
+        var msg = `Video position: <span style="color: var(--primary);">${secondsToTime(pos)}</span><br><br><br>Do you want to register this as first point for your clip?`
+        var choice = await renderModal(getModalOptionsString(msg, { "yes": true, "no": false }, '<center><i class="fa-solid fa-clapperboard"></i><br><br>VideoClipper</center>'))
+        if (choice) { window.makeClipPos1 = Math.floor(document.querySelector('video').currentTime); }
+        return;
+    }
+
+    if (window.makeClipPos2 === undefined) {
+        var pos = Math.floor(document.querySelector('video').currentTime);
+        var msg = `Video position: <span style="color: var(--primary);">${secondsToTime(pos)}</span><br><br>Do you want to register this as second point for your clip?`
+        var choice = await renderModal(getModalOptionsString(msg, { "generate clip": true, "no": false, "reset": "reset" }, '<center><i class="fa-solid fa-clapperboard"></i><br><br>VideoClipper</center>'))
+        if (choice) { window.makeClipPos2 = Math.floor(document.querySelector('video').currentTime); } else { return; }
+        if (choice == "reset") { window.makeClipPos1 = undefined; window.makeClipPos2 = undefined; return; }
+    }
+
+    if ( window.makeClipPos1 == window.makeClipPos2 ) { notifyModal("you cannot make a clip with two identical points", false, false, "makeClip"); window.makeClipPos1 = undefined; window.makeClipPos2 = undefined; return; }
+    if ( window.makeClipPos1 == 0 ) { window.makeClipPos1 = 1; }
+
+    notifyModal("generating clip<br><br>" + getLoadingPlaceholder(), false, false, "makeClip");
+
+    var url = baseurl + `/api/?makeClip=${videopath}&start=${window.makeClipPos1}&end=${window.makeClipPos2}`;
+    var result = await apiFetch(url);
+
+    if (result) {
+        if (result.includes("/archive/")) {
+            notifyModal(false, false, false, "makeClip");
+            openVideoInNewTab(result);
+        } else {
+            notifyModal(result, false, false, "makeClip");
+        }
+    } else {
+        notifyModal("request error", false, false, "makeClip");
+    }
+
+    window.makeClipPos1 = undefined;
+    window.makeClipPos2 = undefined;
+
 }
 
 async function deleteVideo(video, videopath) {
@@ -618,6 +676,11 @@ async function getVideo(filepath) {
     videoModal(result)
 }
 
+async function openVideoInNewTab(filepath) {
+    var url = baseurl + `/?getVideo=${filepath}`;
+    window.open(url, "_blank");
+}
+
 function updateProgress() {
     var videos = document.querySelectorAll(".video");
     if (videos) {
@@ -731,6 +794,7 @@ async function videoModal(target) {
         <div id="videoOptions">
             <div class="hideonmobile">${target.name}</div><div class="hideonmobile">${target.date}</div><div class="hideonmobile">${target.time}</div><div class="hideonmobile">${target.size} GB</div>
             <input style="accent-color:var(--primary);" type="range" min="0.0" max="4.0" step="0.1" value="1" oninput="document.querySelector('video').playbackRate=this.value; this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)"><span style="width: 25px">1.0</span>
+            <div onclick="(async () => { makeClip('${target.path}') })()"><i class="fa-solid fa-clapperboard"></i></div>
             <div onclick="(async () => { await renderModal(getModalOptionsString('Do you really want to delete this recording permanently?', {'yes':true, 'no':false})) && deleteVideo('#${target.filename}', '${target.path}') })()"><i class="fa-solid fa-trash"></i></div>
         </div>
         <div id="chat" chaturl="${target.url_log}"></div>

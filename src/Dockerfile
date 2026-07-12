@@ -1,8 +1,6 @@
 FROM debian:latest
 
-RUN apt update
-RUN apt upgrade -y
-RUN apt install -y nano curl apache2 libapache2-mod-php nodejs npm ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxkbcommon0 libxfixes3 libxrandr2 libgbm1 libasound2
+RUN apt update -y && apt upgrade -y && apt install -y nano curl unzip ca-certificates apache2 libapache2-mod-php nodejs npm ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxcomposite1 libxdamage1 libxkbcommon0 libxfixes3 libxrandr2 libgbm1 libasound2
 
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     echo "User twitchrecorder" >> /etc/apache2/apache2.conf && \

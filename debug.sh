@@ -62,6 +62,7 @@ response=$(
         -v $basedir/src/container/entrypoint.sh:/home/twitchrecorder/entrypoint.sh \
         -v $basedir/src/container/getStreamURL.js:/home/twitchrecorder/getStreamURL.js \
         -v $basedir/src/container/record.sh:/home/twitchrecorder/record.sh \
+        -v $basedir/src/container/makeclip.sh:/home/twitchrecorder/makeclip.sh \
         -v $mountpath:/home/twitchrecorder/archive/ \
     thirtysix361/twitchrecorder 2>&1
 )

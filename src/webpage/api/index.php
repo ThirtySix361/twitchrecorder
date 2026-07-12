@@ -157,15 +157,18 @@
         $datePart = substr($beforeLastUnderscore, $secondLastUnderscorePos + 1);
         $streamerName = substr($beforeLastUnderscore, 0, $secondLastUnderscorePos);
         list($year, $month, $day) = explode('-', $datePart);
-        list($hour, $minute) = explode('-', $timePart);
+        list($hour, $minute, $second) = explode('-', $timePart);
         $formattedDate = sprintf('%02d.%02d.%04d', $day, $month, $year);
         $formattedTime = sprintf('%02d:%02d', $hour, $minute);
+        $formattedHis = sprintf('%02d:%02d:%02d', $hour, $minute, $second);
         if ($result == "name") {
             return "$streamerName";
         } else if ($result == "date") {
             return "$formattedDate";
         } else if ($result == "time") {
             return "$formattedTime";
+        } else if ($result == "His") {
+            return "$formattedHis";
         } else {
             return "$streamerName $formattedDate $formattedTime";
         }
@@ -222,10 +225,7 @@
             'name' => prettyName($info['basename'], "name"),
             'date' => prettyName($info['basename'], "date"),
             'time' => prettyName($info['basename'], "time"),
-            'timestamp' => DateTime::createFromFormat(
-                'd.m.Y H:i',
-                prettyName($info['basename'], "date") . ' ' . prettyName($info['basename'], "time")
-            )?->getTimestamp(),
+            'timestamp' => DateTime::createFromFormat( 'd.m.Y H:i:s', prettyName($info['basename'], "date") . ' ' . prettyName($info['basename'], "His") )?->getTimestamp(),
             'size' => getSize(new SplFileInfo($fullpath)),
             'url_noext' => $baseurl . $base,
             'url_video' => $baseurl . $requested_file,
@@ -260,7 +260,7 @@
 
                 $entry = [
                     'path' => str_replace(dirname(__DIR__), '', $item->getPathname()),
-                    'timestamp' => (DateTime::createFromFormat('d.m.Y H:i', prettyName($item->getFilename(), "date") . ' ' . prettyName($item->getFilename(), "time")))->getTimestamp(),
+                    'timestamp' => (DateTime::createFromFormat('d.m.Y H:i:s', prettyName($item->getFilename(), "date") . ' ' . prettyName($item->getFilename(), "His")))->getTimestamp(),
                     'size' => getSize($item),
                     'filename' => pathinfo($item->getFilename(), PATHINFO_FILENAME),
                     'name' => prettyName($item->getFilename(), "name"),
@@ -285,6 +285,19 @@
         }
         ksort($grouped);
         return $grouped;
+    }
+
+    function makeClip($file, $start, $end) {
+        $basedir = dirname(__DIR__);
+        $realFile = realpath($basedir . $file);
+        $archiveDir = realpath($basedir . "/archive");
+        if (!$realFile || !$archiveDir || strpos($realFile, $archiveDir . DIRECTORY_SEPARATOR) !== 0) { return "invalid file"; }
+        $file = str_replace($basedir, '', $realFile);
+        if ($file === '' || $start === '' || $end === '') { return "missing parameter"; }
+        $script = $basedir . "/makeclip.sh";
+        if (!file_exists($script)) { return "makeclip.sh not found"; }
+        $cmd = "cd " . escapeshellarg($basedir) . "; bash " . escapeshellarg($script) . " " . escapeshellarg($realFile) . " " . escapeshellarg($start) . " " . escapeshellarg($end);
+        return execute($cmd . " 2>&1 | tail -n 1 | tr -d '\n' " );
     }
 
     # --------------------------------------------------------------------------------- #
@@ -398,6 +411,15 @@
 
     if (isset($_GET['deleteVideo'])) {
         $response = delete($_GET['deleteVideo']);
+        output($response);
+    }
+
+    if (isset($_GET['makeClip'])) {
+        $file = urldecode($_GET['makeClip']);
+        $start = isset($_GET['start']) ? trim($_GET['start']) : '';
+        $end = isset($_GET['end']) ? trim($_GET['end']) : '';
+
+        $response = makeClip($file, $start, $end);
         output($response);
     }
 

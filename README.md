@@ -154,6 +154,7 @@ graph TD
         - [x] remove empty directorys
         - [x] remove last time position
     - [x] video navigation buttons
+    - [x] clip function for video
     - [x] optimize for mobile
     - [x] save last time position to localstorage
     - [x] load last time position on open

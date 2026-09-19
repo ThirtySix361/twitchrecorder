@@ -12,7 +12,14 @@ if (!channelName || !logFilePath) {
 
 const url = `https://www.twitch.tv/popout/${channelName}/chat`;
 const dataDir = `/tmp/${channelName}-profile`;
+const archiveBaseDir = path.resolve('/home/twitchrecorder/archive');
 const resolvedPath = path.resolve(logFilePath);
+
+if (resolvedPath !== archiveBaseDir && !resolvedPath.startsWith(archiveBaseDir + path.sep)) {
+    console.error('logfilepath must reside within the archive directory');
+    process.exit(1);
+}
+
 const logStream = fs.createWriteStream(resolvedPath, { flags: 'a' });
 
 (async () => {

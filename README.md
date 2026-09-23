@@ -1,5 +1,7 @@
 <div align="center">
 
+[![preview](https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/doc/previewAI.png)](https://github.com/ThirtySix361/twitchrecorder/)
+
 [![version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/ThirtySix361/twitchrecorder/master/src/version.json?&style=for-the-badge&logo=wikidata)](https://github.com/ThirtySix361/twitchrecorder)
 [![commit](https://img.shields.io/github/last-commit/ThirtySix361/twitchrecorder?&style=for-the-badge&logo=github&label=github+last+commit)](https://github.com/ThirtySix361/twitchrecorder)
 [![Docker Image CI/CD](https://img.shields.io/github/actions/workflow/status/ThirtySix361/twitchrecorder/docker.yml?style=for-the-badge&logo=github&label=Docker%20Pipeline)](https://github.com/ThirtySix361/twitchrecorder/actions/workflows/docker.yml) <br>
@@ -66,6 +68,16 @@ bash run.sh port=8000 mount=/home/user/twitchrecorder/ auth=username:password
 ```
 
 then acceess the webpage through your browser on `http://localhost:<port>`
+
+## 📷 how to use
+
+actual tutorial footage <br>
+
+[how to record your first stream.mp4](https://thirtysix361.github.io/twitchrecorder/doc/video/record_a_stream.mp4) <br>
+[how to create a clip within a stream.mp4](https://thirtysix361.github.io/twitchrecorder/doc/video/make_a_clip.mp4) <br>
+[how to view logs.mp4](https://thirtysix361.github.io/twitchrecorder/doc/video/logging.mp4) <br>
+[how to record another stream.mp4](https://thirtysix361.github.io/twitchrecorder/doc/video/record_another_stream.mp4) <br>
+[how to create a custom thumbnail.mp4](https://thirtysix361.github.io/twitchrecorder/doc/video/create_custom_thumbnail.mp4)
 
 ## 🧠 general informations
 
@@ -155,6 +167,7 @@ graph TD
         - [x] remove last time position
     - [x] video navigation buttons
     - [x] clip function for video
+    - [x] custom thumbnail function for video
     - [x] optimize for mobile
     - [x] save last time position to localstorage
     - [x] load last time position on open

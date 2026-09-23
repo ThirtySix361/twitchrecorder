@@ -532,6 +532,37 @@ async function makeClip(videopath) {
 
 }
 
+async function makeThumbnail(videopath) {
+
+    var pos = Math.floor(document.querySelector('#video').currentTime);
+
+    var msg = `Video position: <span style="color: var(--primary);">${secondsToTime(pos)}</span><br><br>Do you want to use the current video position as thumbnail?`;
+    var choice = await renderModal(getModalOptionsString(msg, { "yes": true, "no": false }, '<center><i class="fa-solid fa-image"></i><br><br>Thumbnail</center>'));
+
+    if (!choice) { return; }
+
+    notifyModal("generating thumbnail<br><br>" + getLoadingPlaceholder(), false, false, "makeThumbnail");
+
+    var url = baseurl + `/api/?makeThumbnail=${videopath}&timestamp=${pos}`;
+    var result = await apiFetch(url);
+
+    if (result) {
+        notifyModal(false, false, false, "makeThumbnail");
+
+        var filename = document.querySelector('#video').getAttribute('filename');
+        var image = document.querySelector('#' + CSS.escape(filename) + ' .videoimage img');
+
+        if (image) {
+            var src = image.src.split('?')[0];
+            image.src = src + '?thumbnail=' + Date.now();
+            image.style.display = '';
+        }
+    } else {
+        notifyModal("request error", false, false, "makeThumbnail");
+    }
+
+}
+
 async function deleteVideo(video, videopath) {
     var video = document.querySelector(video);
     var channel = video.getAttribute('channel');
@@ -795,6 +826,7 @@ async function videoModal(target) {
             <div class="hideonmobile">${target.name}</div><div class="hideonmobile">${target.date}</div><div class="hideonmobile">${target.time}</div><div class="hideonmobile">${target.size} GB</div>
             <input style="accent-color:var(--primary);" type="range" min="0.0" max="4.0" step="0.1" value="1" oninput="document.querySelector('video').playbackRate=this.value; this.nextElementSibling.textContent=parseFloat(this.value).toFixed(1)"><span style="width: 25px">1.0</span>
             <div onclick="(async () => { makeClip('${target.path}') })()"><i class="fa-solid fa-clapperboard"></i></div>
+            <div onclick="(async () => { makeThumbnail('${target.path}') })()"><i class="fa-solid fa-image"></i></div>
             <div onclick="(async () => { await renderModal(getModalOptionsString('Do you really want to delete this recording permanently?', {'yes':true, 'no':false})) && deleteVideo('#${target.filename}', '${target.path}') })()"><i class="fa-solid fa-trash"></i></div>
         </div>
         <div id="chat" chaturl="${target.url_log}"></div>

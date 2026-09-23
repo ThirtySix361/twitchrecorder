@@ -300,6 +300,20 @@
         return execute($cmd . " 2>&1 | tail -n 1 | tr -d '\n' " );
     }
 
+    function makeThumbnail($file, $timestamp) {
+        $basedir = dirname(__DIR__);
+        $realFile = realpath($basedir . $file);
+        $archiveDir = realpath($basedir . "/archive");
+        if (!$realFile || !$archiveDir || strpos($realFile, $archiveDir . DIRECTORY_SEPARATOR) !== 0) { return "invalid file"; }
+        $file = str_replace($basedir, '', $realFile);
+        if ($file === '' || $timestamp === '') { return "missing parameter"; }
+        if (!is_numeric($timestamp) || $timestamp < 0) { return "invalid timestamp"; }
+        $script = $basedir . "/makethumbnail.sh";
+        if (!file_exists($script)) { return "makethumbnail.sh not found"; }
+        $cmd = "cd " . escapeshellarg($basedir) . "; bash " . escapeshellarg($script) . " " . escapeshellarg($realFile) . " " . escapeshellarg($timestamp);
+        return execute($cmd . " 2>&1 | tail -n 1 | tr -d '\n' ");
+    }
+
     # --------------------------------------------------------------------------------- #
 
     function isAssoc($arr) {
@@ -418,8 +432,14 @@
         $file = urldecode($_GET['makeClip']);
         $start = isset($_GET['start']) ? trim($_GET['start']) : '';
         $end = isset($_GET['end']) ? trim($_GET['end']) : '';
-
         $response = makeClip($file, $start, $end);
+        output($response);
+    }
+
+    if (isset($_GET['makeThumbnail'])) {
+        $file = urldecode($_GET['makeThumbnail']);
+        $timestamp = isset($_GET['timestamp']) ? trim($_GET['timestamp']) : '';
+        $response = makeThumbnail($file, $timestamp);
         output($response);
     }
 

@@ -112,11 +112,11 @@ format_time() {
     separator="$2"
 
     if [[ "$input" =~ ^[0-9]+$ ]]; then
-        seconds="$input"
+        seconds=$((10#$input))
     elif [[ "$input" =~ ^([0-9]+):([0-9]{2}):([0-9]{2})$ ]]; then
-        seconds=$(( ${BASH_REMATCH[1]} * 3600 + ${BASH_REMATCH[2]} * 60 + ${BASH_REMATCH[3]} ))
+        seconds=$((10#${BASH_REMATCH[1]} * 3600 + 10#${BASH_REMATCH[2]} * 60 + 10#${BASH_REMATCH[3]}))
     elif [[ "$input" =~ ^([0-9]+):([0-9]{2})$ ]]; then
-        seconds=$(( ${BASH_REMATCH[1]} * 60 + ${BASH_REMATCH[2]} ))
+        seconds=$((10#${BASH_REMATCH[1]} * 60 + 10#${BASH_REMATCH[2]}))
     else
         echo "Ungültiges Format: $input" >&2
         return 1
@@ -128,7 +128,7 @@ format_time() {
 add_time() {
     IFS=- read -r h1 m1 s1 <<< "$1"
     IFS=- read -r h2 m2 s2 <<< "$2"
-    seconds=$((h1*3600 + m1*60 + s1 + h2*3600 + m2*60 + s2))
+    seconds=$((10#$h1*3600 + 10#$m1*60 + 10#$s1 + 10#$h2*3600 + 10#$m2*60 + 10#$s2))
     printf "%02d-%02d-%02d\n" $((seconds/3600)) $(((seconds%3600)/60)) $((seconds%60))
 }
 
